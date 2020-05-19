@@ -10,7 +10,7 @@ Works with:
 * 
 
 Application structure:
-![Diagram](./Documentation/Architecture.PNG)
+![Diagram](./Documentation/Architecture.png)
 
 ToDo:
 * Duplex binding
