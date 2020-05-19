@@ -10,7 +10,7 @@ Works with:
 * 
 
 Application structure:
-![Diagram](https://github.com/machielvisser/Documentation/Architecture.PNG)
+![Diagram](./Documentation/Architecture.PNG)
 
 ToDo:
 * Duplex binding
