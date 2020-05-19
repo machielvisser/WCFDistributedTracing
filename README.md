@@ -3,7 +3,7 @@
 This project shows how distributed tracing in WCF can be used to do structured logging.
 DistributedOperationContext is used to pass context information through the distributed execution path.
 Serilog is used as the logging framework, with an output to Seq for central analysis.
-![Diagram](https://github.com/machielvisser/Documentation/Seq.PNG)
+![Diagram](./Documentation/Seq.PNG)
 
 Works with:
 * Async pattern
