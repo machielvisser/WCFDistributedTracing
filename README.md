@@ -15,3 +15,6 @@ Serilog is used as the logging framework, with an output to Seq for central anal
 ## ToDo:
 * Duplex binding
 * Multithreading unit test
+
+## Thanks to:
+* [noseratio](https://stackoverflow.com/users/1768303/noseratio) for his implementation of [FlowingOperationContextScope]( https://stackoverflow.com/questions/18284998/pattern-for-calling-wcf-service-using-async-await/22753055#22753055)
