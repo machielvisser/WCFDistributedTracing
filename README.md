@@ -5,13 +5,13 @@ DistributedOperationContext is used to pass context information through the dist
 Serilog is used as the logging framework, with an output to Seq for central analysis.
 ![Diagram](./Documentation/Seq.PNG)
 
-Works with:
+## Works with:
 * Async pattern
 * 
 
-Application structure:
+## Application structure:
 ![Diagram](./Documentation/Architecture.png)
 
-ToDo:
+## ToDo:
 * Duplex binding
 * Multithreading unit test
