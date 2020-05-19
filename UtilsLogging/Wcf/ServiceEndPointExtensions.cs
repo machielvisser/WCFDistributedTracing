@@ -1,24 +1,23 @@
 using System.Linq;
 using System.ServiceModel.Description;
-using UtilsLogging.Wcf.WcfCorrelation;
 
-namespace UtilsLogging.Wcf
+namespace UtilsLogging.WCF
 {
     public static class ServiceEndPointExtensions
     {
-        public static void AddWcfCorrelationBehavior(this ServiceEndpoint endPoint)
+        public static void AddTracingBehavior(this ServiceEndpoint endPoint)
         {
-            if (!endPoint.Behaviors.OfType<WcfCorrelationBehavior>().Any())
+            if (!endPoint.Behaviors.OfType<CorrelationBehavior>().Any())
             {
-                endPoint.Behaviors.Add(new WcfCorrelationBehavior());
+                endPoint.Behaviors.Add(new CorrelationBehavior());
             }
 
             foreach (var operationDescription in endPoint.Contract.Operations)
             {
-                if (operationDescription.Behaviors.OfType<WcfCorrelationBehavior>()
+                if (operationDescription.Behaviors.OfType<CorrelationBehavior>()
                     .Any())
                 {
-                    operationDescription.Behaviors.Add(new WcfCorrelationBehavior());
+                    operationDescription.Behaviors.Add(new CorrelationBehavior());
                 }
             }
         }

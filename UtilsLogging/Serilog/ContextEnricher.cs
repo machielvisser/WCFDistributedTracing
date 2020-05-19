@@ -2,14 +2,15 @@ using System;
 using System.ServiceModel;
 using Serilog.Core;
 using Serilog.Events;
+using UtilsLogging.WCF;
 
-namespace UtilsLogging.Wcf.WcfCorrelation
+namespace UtilsLogging.Serilog
 {
     /// <summary>Enrich log events with a HttpRequestId GUID.</summary>
-    public class WcfCorrelationEnricher : ILogEventEnricher
+    public class ContextEnricher : ILogEventEnricher
     {
         /// <summary>The property name added to enriched log events.</summary>
-        public const string WcfCorrelationIdName = "WcfCorrelationId";
+        public const string TraceId = "TraceId";
 
         /// <summary>
         /// Enrich the log event with an id assigned to the currently-executing HTTP request, if any.
@@ -20,7 +21,7 @@ namespace UtilsLogging.Wcf.WcfCorrelation
         {
             if (logEvent == null)
                 throw new ArgumentNullException(nameof(logEvent));
-            var property = new LogEventProperty(WcfCorrelationIdName, new ScalarValue(WcfCorrelationContext.Current?.TraceId ?? "-"));
+            var property = new LogEventProperty(TraceId, new ScalarValue(DistributedOperationContext.Current?.TraceId ?? "-"));
             logEvent.AddPropertyIfAbsent(property);
             var userContextProperty = new LogEventProperty("IsUserContext", new ScalarValue(OperationContext.Current?.IsUserContext.ToString() ?? "-"));
             logEvent.AddPropertyIfAbsent(userContextProperty);

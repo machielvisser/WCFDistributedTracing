@@ -1,8 +1,8 @@
 ﻿using Serilog;
 using System;
 using System.ServiceModel;
-using UtilsLogging.Wcf;
-using UtilsLogging.Wcf.WcfCorrelation;
+using UtilsLogging.Serilog;
+using UtilsLogging.WCF;
 
 namespace UtilsLogging.PlatformServer
 {
@@ -13,7 +13,7 @@ namespace UtilsLogging.PlatformServer
             CreateLogger();
             var host = new ServiceHost(typeof(SimplePlatformService), new Uri(SimplePlatformService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimplePlatformService), new BasicHttpBinding(), "");
-            endPoint.AddWcfCorrelationBehavior();
+            endPoint.AddTracingBehavior();
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
@@ -28,7 +28,7 @@ namespace UtilsLogging.PlatformServer
                 // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
                 .Enrich.WithProcessName()
-                .Enrich.With<WcfCorrelationEnricher>()
+                .Enrich.With<ContextEnricher>()
                 .CreateLogger();
         }
     }

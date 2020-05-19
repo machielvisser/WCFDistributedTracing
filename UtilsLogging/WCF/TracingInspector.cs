@@ -5,9 +5,9 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using Serilog;
 
-namespace UtilsLogging.Wcf.WcfCorrelation
+namespace UtilsLogging.WCF
 {
-    public class WcfCorrelationInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
+    public class TracingInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
     {
         public string HeaderCorrelationId { get; set; }
 
@@ -15,7 +15,7 @@ namespace UtilsLogging.Wcf.WcfCorrelation
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var correlationId = WcfCorrelationContext.Current?.TraceId;
+            var correlationId = DistributedOperationContext.Current?.TraceId;
             HeaderCorrelationId = string.IsNullOrWhiteSpace(correlationId) || !Guid.TryParse(correlationId, out _)
                 ? Guid.NewGuid()
 
@@ -40,7 +40,7 @@ namespace UtilsLogging.Wcf.WcfCorrelation
                     } :
                     new Dictionary<string, string>();
 
-            var context = WcfCorrelationContext.Current;
+            var context = DistributedOperationContext.Current;
             if(context != null)
                 context.TraceId = correlationId;
             return messageHeaders;

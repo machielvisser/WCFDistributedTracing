@@ -5,9 +5,9 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
-namespace UtilsLogging.Wcf.WcfCorrelation
+namespace UtilsLogging.WCF
 {
-    public class WcfCorrelationBehavior: IEndpointBehavior, IServiceBehavior, IOperationBehavior
+    public class CorrelationBehavior: IEndpointBehavior, IServiceBehavior, IOperationBehavior
     {
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
         {
@@ -42,14 +42,14 @@ namespace UtilsLogging.Wcf.WcfCorrelation
 
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-            if(!clientRuntime.ClientMessageInspectors.OfType<WcfCorrelationInspector>().Any())
+            if(!clientRuntime.ClientMessageInspectors.OfType<TracingInspector>().Any())
                 clientRuntime.ClientMessageInspectors.Add(CreateClientMessageInspector());
         }
 
         public void ApplyClientBehavior(OperationDescription operationDescription, ClientOperation clientOperation)
         {
-            if(!clientOperation.ParameterInspectors.OfType<WcfCorrelationInspector>().Any())
-                clientOperation.ParameterInspectors.Add(new WcfCorrelationInspector());
+            if(!clientOperation.ParameterInspectors.OfType<TracingInspector>().Any())
+                clientOperation.ParameterInspectors.Add(new TracingInspector());
 
         }
 
@@ -59,7 +59,7 @@ namespace UtilsLogging.Wcf.WcfCorrelation
             if (channelDispatcher == null) return;
             foreach (var ed in channelDispatcher.Endpoints)
             {
-                if (!ed.DispatchRuntime.MessageInspectors.OfType<WcfCorrelationInspector>()
+                if (!ed.DispatchRuntime.MessageInspectors.OfType<TracingInspector>()
                     .Any())
                     ed.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
             }
@@ -72,7 +72,7 @@ namespace UtilsLogging.Wcf.WcfCorrelation
                 var cDispatcher = (ChannelDispatcher) channelDispatcherBase;
                 foreach (var eDispatcher in cDispatcher.Endpoints)
                 {
-                    if(!eDispatcher.DispatchRuntime.MessageInspectors.OfType<WcfCorrelationInspector>().Any())
+                    if(!eDispatcher.DispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
                         eDispatcher.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
                 }
             }
@@ -80,11 +80,11 @@ namespace UtilsLogging.Wcf.WcfCorrelation
 
         public void ApplyDispatchBehavior(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
-            dispatchOperation.ParameterInspectors.Add(new WcfCorrelationInspector());
+            dispatchOperation.ParameterInspectors.Add(new TracingInspector());
         }
 
-        protected virtual IClientMessageInspector CreateClientMessageInspector() => new WcfCorrelationInspector();
+        protected virtual IClientMessageInspector CreateClientMessageInspector() => new TracingInspector();
 
-        protected virtual IDispatchMessageInspector CreateDispatchMessageInspector() => new WcfCorrelationInspector();
+        protected virtual IDispatchMessageInspector CreateDispatchMessageInspector() => new TracingInspector();
     }
 }

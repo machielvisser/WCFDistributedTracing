@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace UtilsLogging.Wcf
+namespace UtilsLogging.WCF
 {    
     public sealed class FlowingOperationContextScope : IDisposable
     {

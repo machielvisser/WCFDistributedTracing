@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.Threading.Tasks;
 using Serilog;
 using UtilsLogging.PlatformServer;
-using UtilsLogging.Wcf;
+using UtilsLogging.WCF;
 
 namespace UtilsLogging.EdgeServer
 {
@@ -18,7 +18,7 @@ namespace UtilsLogging.EdgeServer
             await Task.Run(() => Log.Information("Async operation"));
 
             var factory = new ChannelFactory<ISimplePlatformService>(new BasicHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
-            factory.Endpoint.AddWcfCorrelationBehavior();
+            factory.Endpoint.AddTracingBehavior();
             var proxy = factory.CreateChannel();
 
             var result = await proxy.Echo("Hello dependency service");

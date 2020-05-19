@@ -1,11 +1,11 @@
 using System;
 using System.ServiceModel;
 
-namespace UtilsLogging.Wcf.WcfCorrelation
+namespace UtilsLogging.WCF
 {
-    public class WcfCorrelationContext : IExtension<OperationContext>
+    public class DistributedOperationContext : IExtension<OperationContext>
     {
-        public WcfCorrelationContext()
+        public DistributedOperationContext()
         {
             ResetCorrelationId();
         }
@@ -19,15 +19,15 @@ namespace UtilsLogging.Wcf.WcfCorrelation
                 .ToString();
         }
 
-        public static WcfCorrelationContext Current
+        public static DistributedOperationContext Current
         {
             get
             {
                 var operationContext = OperationContext.Current;
                 if (operationContext == null) return null;
-                var context = operationContext.Extensions.Find<WcfCorrelationContext>();
+                var context = operationContext.Extensions.Find<DistributedOperationContext>();
                 if (context != null) return context;
-                context = new WcfCorrelationContext();
+                context = new DistributedOperationContext();
                 operationContext.Extensions.Add(context);
                 return context;
             }

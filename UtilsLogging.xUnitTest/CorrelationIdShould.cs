@@ -1,8 +1,8 @@
 using System.ServiceModel;
 using Serilog;
 using UtilsLogging.EdgeServer;
-using UtilsLogging.Wcf;
-using UtilsLogging.Wcf.WcfCorrelation;
+using UtilsLogging.Serilog;
+using UtilsLogging.WCF;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +18,7 @@ namespace UtilsLogging.xUnitTest
                 // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
                 .WriteTo.TestOutput(testOutputHelper, outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
                 .Enrich.WithProcessName()
-                .Enrich.With<WcfCorrelationEnricher>()
+                .Enrich.With<ContextEnricher>()
                 .CreateLogger();
         }
 
@@ -26,20 +26,20 @@ namespace UtilsLogging.xUnitTest
         public async void Test()
         {            
             var factory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
-            factory.Endpoint.AddWcfCorrelationBehavior();
+            factory.Endpoint.AddTracingBehavior();
             var proxy = factory.CreateChannel();
 
-            Log.Information("CorrelationId before OperationScope: {CorrelationId}", WcfCorrelationContext.Current?.TraceId);
+            Log.Information("CorrelationId before OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
 
             using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
             {
-                Log.Information("CorrelationId beginning of OperationScope: {CorrelationId}", WcfCorrelationContext.Current?.TraceId);
+                Log.Information("CorrelationId beginning of OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
 
                 var result = await proxy.Echo("Hello edge service").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
             }
 
-            Log.Information("CorrelationId after OperationScope: {CorrelationId}", WcfCorrelationContext.Current?.TraceId);
+            Log.Information("CorrelationId after OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
 
             (proxy as IClientChannel)?.Close();
             factory.Close();

@@ -2,84 +2,83 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
-using UtilsLogging.Wcf;
 
-namespace UtilsLogging
+namespace UtilsLogging.WCF
 {
     public class TracingDuplexClientBase<T> : DuplexClientBase<T> where T : class
     {
         public TracingDuplexClientBase(object callbackInstance) : base(callbackInstance)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(object callbackInstance, string endpointConfigurationName) : base(callbackInstance, endpointConfigurationName)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(object callbackInstance, string endpointConfigurationName, string remoteAddress) : base(callbackInstance, endpointConfigurationName, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(object callbackInstance, string endpointConfigurationName, EndpointAddress remoteAddress) : base(callbackInstance, endpointConfigurationName, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(object callbackInstance, Binding binding, EndpointAddress remoteAddress) : base(callbackInstance, binding, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(object callbackInstance, ServiceEndpoint endpoint) : base(callbackInstance, endpoint)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance) : base(callbackInstance)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance, string endpointConfigurationName) : base(callbackInstance, endpointConfigurationName)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance, string endpointConfigurationName, string remoteAddress) : base(callbackInstance, endpointConfigurationName, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance, string endpointConfigurationName, EndpointAddress remoteAddress) : base(callbackInstance, endpointConfigurationName, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance, Binding binding, EndpointAddress remoteAddress) : base(callbackInstance, binding, remoteAddress)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
 
         public TracingDuplexClientBase(InstanceContext callbackInstance, ServiceEndpoint endpoint) : base(callbackInstance, endpoint)
         {
-            Endpoint.AddWcfCorrelationBehavior();
+            Endpoint.AddTracingBehavior();
         }
     }
 
-    public class ServiceHost: System.ServiceModel.ServiceHost
+    public class TracingEnabledServiceHost: System.ServiceModel.ServiceHost
     {
-        protected ServiceHost()
+        protected TracingEnabledServiceHost()
         {
         }
 
-        public ServiceHost(Type serviceType, params Uri[] baseAddresses) : base(serviceType, baseAddresses)
+        public TracingEnabledServiceHost(Type serviceType, params Uri[] baseAddresses) : base(serviceType, baseAddresses)
         {
         }
 
-        public ServiceHost(object singletonInstance, params Uri[] baseAddresses) : base(singletonInstance, baseAddresses)
+        public TracingEnabledServiceHost(object singletonInstance, params Uri[] baseAddresses) : base(singletonInstance, baseAddresses)
         {
         }
 
@@ -88,7 +87,7 @@ namespace UtilsLogging
             base.ApplyConfiguration();
             foreach (var endpoint in Description.Endpoints)
             {
-                endpoint.AddWcfCorrelationBehavior();
+                endpoint.AddTracingBehavior();
             }
         }
     }
