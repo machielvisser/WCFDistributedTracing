@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>UtilsLogging.EdgeServer</AssemblyName>
+    <RootNamespace>UtilsLogging.EdgeServer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.9.0" />
+    <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.1" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UtilsLogging.PlatformServer\UtilsLogging.PlatformServer.csproj" />
+    <ProjectReference Include="..\UtilsLogging\UtilsLogging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>
