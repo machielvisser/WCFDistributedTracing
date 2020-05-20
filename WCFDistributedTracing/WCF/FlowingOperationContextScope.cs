@@ -80,7 +80,7 @@ namespace WCFDistributedTracing.WCF
                 return this;
             }
 
-            public TResult GetResult()
+            public new TResult GetResult()
             {
                 var task = _task as Task<TResult>;
                 return task.Result;

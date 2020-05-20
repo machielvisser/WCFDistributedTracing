@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +12,11 @@ using Xunit.Abstractions;
 
 namespace WCFDistributedTracing.Test
 {
-    public class CorrelationIdShould : IDisposable
+    public class TraceIdShouldBeCorrectInSeq : IDisposable
     {
         private readonly ChannelFactory<ISimpleEdgeService> _channelFactory;
 
-        public CorrelationIdShould(ITestOutputHelper testOutputHelper)
+        public TraceIdShouldBeCorrectInSeq(ITestOutputHelper testOutputHelper)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Seq("http://localhost:5341")
@@ -37,22 +35,28 @@ namespace WCFDistributedTracing.Test
         [Fact]
         public async void TestSingleTrace()
         {
-            await ExecuteTrace();
+            await ExecuteTrace(0, 0);
         }
 
         [Fact]
-        public async void TestMultiThreadingTraces()
+        public void TestMultiThreadingTraces()
         {
-            await Observable
-                .Interval(TimeSpan.FromMilliseconds(100))
-                .Take(5)
-                .Select(_ => Task.Run(ExecuteTrace))
-                .Wait();
+            // To prevent delays in the logged timestamps
+            Log.Information("Staring TestMultiThreadingTraces");
+
+            var executions = Enumerable
+                .Range(0, 5)
+                .Select(index => ExecuteTrace(index, 100))
+                .ToArray();
+
+            Task.WaitAll(executions);
         }
 
-        private async Task ExecuteTrace()
+        private async Task ExecuteTrace(int index, int delay)
         {
             var proxy = _channelFactory.CreateChannel();
+
+            await Task.Delay(index * delay);
 
             Log.Information("Before OperationScope: {TraceId} {ThreadId}", DistributedOperationContext.Current?.TraceId, Thread.CurrentThread.ManagedThreadId);
 
@@ -62,7 +66,8 @@ namespace WCFDistributedTracing.Test
 
                 Log.Information("Beginning of OperationScope: {TraceId} {ThreadId}", traceId, Thread.CurrentThread.ManagedThreadId);
 
-                await Task.Delay(200).ContinueOnScope(scope);
+                // This makes the scope overlap with other scopes
+                await Task.Delay(delay).ContinueOnScope(scope);
 
                 var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
