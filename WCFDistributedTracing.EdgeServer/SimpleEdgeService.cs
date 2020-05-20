@@ -28,7 +28,7 @@ namespace WCFDistributedTracing.EdgeServer
         }
         public async Task EchoClient(string message)
         {
-            await Task.Run(() => Log.Information("Received from the PlatformService service: {Message}", message));
+            await Task.Run(() => Log.Information($"Received from the {nameof(ISimplePlatformService)}: {{Message}}", message));
         }
     }
 }
