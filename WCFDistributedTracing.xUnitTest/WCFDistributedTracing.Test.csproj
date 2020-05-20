@@ -1,9 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
 
     <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CodeAnalysisRuleSet>..\WCFDistributedTracing\WCFDistributedTracing.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <CodeAnalysisRuleSet>..\WCFDistributedTracing\WCFDistributedTracing.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UtilsLogging.EdgeServer\UtilsLogging.EdgeServer.csproj" />
-    <ProjectReference Include="..\UtilsLogging\UtilsLogging.csproj" />
+    <ProjectReference Include="..\WCFDistributedTracing.EdgeServer\WCFDistributedTracing.EdgeServer.csproj" />
+    <ProjectReference Include="..\WCFDistributedTracing\WCFDistributedTracing.csproj" />
   </ItemGroup>
 
 </Project>

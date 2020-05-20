@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <CodeAnalysisRuleSet>UtilsLogging.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>WCFDistributedTracing.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <CodeAnalysisRuleSet>UtilsLogging.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>WCFDistributedTracing.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

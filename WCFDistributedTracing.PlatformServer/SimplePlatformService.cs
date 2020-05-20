@@ -2,7 +2,7 @@ using Serilog;
 using System;
 using System.Threading.Tasks;
 
-namespace UtilsLogging.PlatformServer
+namespace WCFDistributedTracing.PlatformServer
 {
     public class SimplePlatformService : ISimplePlatformService
     {

@@ -4,10 +4,11 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using UtilsLogging.WCF;
 
-namespace UtilsLogging.WCF
+namespace WCFDistributedTracing.WCF
 {
-    public class CorrelationBehavior: IEndpointBehavior, IServiceBehavior, IOperationBehavior
+    public class TracingBehavior: IEndpointBehavior, IServiceBehavior, IOperationBehavior
     {
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
         {

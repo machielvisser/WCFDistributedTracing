@@ -2,10 +2,10 @@ using System;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using Serilog;
-using UtilsLogging.PlatformServer;
-using UtilsLogging.WCF;
+using WCFDistributedTracing.PlatformServer;
+using WCFDistributedTracing.WCF;
 
-namespace UtilsLogging.EdgeServer
+namespace WCFDistributedTracing.EdgeServer
 {
     public class SimpleEdgeService : ISimpleEdgeService
     {

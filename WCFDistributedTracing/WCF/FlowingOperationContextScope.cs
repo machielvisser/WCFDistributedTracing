@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace UtilsLogging.WCF
+namespace WCFDistributedTracing.WCF
 {    
     public sealed class FlowingOperationContextScope : IDisposable
     {

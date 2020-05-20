@@ -1,17 +1,17 @@
 using System;
 using System.ServiceModel;
 using Serilog;
-using UtilsLogging.Serilog;
-using UtilsLogging.WCF;
+using WCFDistributedTracing.Serilog;
+using WCFDistributedTracing.WCF;
 
-namespace UtilsLogging.EdgeServer
+namespace WCFDistributedTracing.EdgeServer
 {
     class Program
     {
         static void Main(string[] _)
         {
             CreateLogger();
-            var host = new System.ServiceModel.ServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
+            var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new BasicHttpBinding(), "");
             endPoint.AddTracingBehavior();
             host.Open();

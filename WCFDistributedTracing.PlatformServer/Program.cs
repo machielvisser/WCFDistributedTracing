@@ -1,17 +1,17 @@
 ﻿using Serilog;
 using System;
 using System.ServiceModel;
-using UtilsLogging.Serilog;
-using UtilsLogging.WCF;
+using WCFDistributedTracing.Serilog;
+using WCFDistributedTracing.WCF;
 
-namespace UtilsLogging.PlatformServer
+namespace WCFDistributedTracing.PlatformServer
 {
     class Program
     {
         static void Main(string[] _)
         {
             CreateLogger();
-            var host = new ServiceHost(typeof(SimplePlatformService), new Uri(SimplePlatformService.BaseAddress));
+            var host = new TracingEnabledServiceHost(typeof(SimplePlatformService), new Uri(SimplePlatformService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimplePlatformService), new BasicHttpBinding(), "");
             endPoint.AddTracingBehavior();
             host.Open();

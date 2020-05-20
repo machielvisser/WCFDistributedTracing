@@ -1,12 +1,13 @@
 using System.ServiceModel;
 using Serilog;
-using UtilsLogging.EdgeServer;
-using UtilsLogging.Serilog;
 using UtilsLogging.WCF;
+using WCFDistributedTracing.EdgeServer;
+using WCFDistributedTracing.Serilog;
+using WCFDistributedTracing.WCF;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace UtilsLogging.xUnitTest
+namespace WCFDistributedTracing.Test
 {
     public class CorrelationIdShould
     {
@@ -29,17 +30,17 @@ namespace UtilsLogging.xUnitTest
             factory.Endpoint.AddTracingBehavior();
             var proxy = factory.CreateChannel();
 
-            Log.Information("CorrelationId before OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
+            Log.Information("TraceId before OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
 
             using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
             {
-                Log.Information("CorrelationId beginning of OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
+                Log.Information("TraceId beginning of OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
 
                 var result = await proxy.Echo("Hello edge service").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
             }
 
-            Log.Information("CorrelationId after OperationScope: {CorrelationId}", DistributedOperationContext.Current?.TraceId);
+            Log.Information("TraceId after OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
 
             (proxy as IClientChannel)?.Close();
             factory.Close();

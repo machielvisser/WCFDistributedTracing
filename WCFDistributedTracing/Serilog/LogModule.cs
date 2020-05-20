@@ -4,7 +4,7 @@ using Serilog;
 using SerilogWeb.Classic;
 using Module = Autofac.Module;
 
-namespace UtilsLogging.Serilog
+namespace WCFDistributedTracing.Serilog
 {
     public class LogModule: Module
     {

@@ -2,9 +2,9 @@ using System;
 using System.ServiceModel;
 using Serilog.Core;
 using Serilog.Events;
-using UtilsLogging.WCF;
+using WCFDistributedTracing.WCF;
 
-namespace UtilsLogging.Serilog
+namespace WCFDistributedTracing.Serilog
 {
     /// <summary>Enrich log events with a HttpRequestId GUID.</summary>
     public class ContextEnricher : ILogEventEnricher

@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.ServiceModel;
 
-namespace UtilsLogging.WCF
+namespace WCFDistributedTracing.WCF
 {
     public class DistributedOperationContext : IExtension<OperationContext>
     {

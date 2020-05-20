@@ -1,7 +1,7 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace UtilsLogging.EdgeServer
+namespace WCFDistributedTracing.EdgeServer
 {
     [ServiceContract]
     public interface ISimpleEdgeService

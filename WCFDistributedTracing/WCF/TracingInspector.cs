@@ -4,45 +4,46 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using Serilog;
+using WCFDistributedTracing.WCF;
 
 namespace UtilsLogging.WCF
 {
     public class TracingInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
     {
-        public string HeaderCorrelationId { get; set; }
+        public string TraceId { get; set; }
 
-        public string CorrelationId { get; } = "CorrelationId";
+        public string TraceIdHeader { get; } = "TraceId";
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
             var correlationId = DistributedOperationContext.Current?.TraceId;
-            HeaderCorrelationId = string.IsNullOrWhiteSpace(correlationId) || !Guid.TryParse(correlationId, out _)
+            TraceId = string.IsNullOrWhiteSpace(correlationId) || !Guid.TryParse(correlationId, out _)
                 ? Guid.NewGuid()
 
                     .ToString()
                 : correlationId;
-                
-            var messageHeader = new MessageHeader<string>(HeaderCorrelationId);
-            var untypedMessageHeader = messageHeader.GetUntypedHeader(CorrelationId, string.Empty);
+
+            var messageHeader = new MessageHeader<string>(TraceId);
+            var untypedMessageHeader = messageHeader.GetUntypedHeader(TraceIdHeader, string.Empty);
             request.Headers.Add(untypedMessageHeader);
-            return HeaderCorrelationId;
+            return TraceId;
         }
 
         public virtual object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var correlationId = request.Headers.FindHeader(CorrelationId, string.Empty)  >= 0 ? request.Headers.GetHeader<string>(CorrelationId, string.Empty) : string.Empty;
+            var traceId = request.Headers.FindHeader(TraceIdHeader, string.Empty) >= 0 ? request.Headers.GetHeader<string>(TraceIdHeader, string.Empty) : string.Empty;
 
             IDictionary<string, string> messageHeaders =
-                !string.IsNullOrWhiteSpace(correlationId) ?
+                !string.IsNullOrWhiteSpace(traceId) ?
                     new Dictionary<string, string>
                     {
-                        { CorrelationId, correlationId }
+                        [TraceIdHeader] = traceId
                     } :
                     new Dictionary<string, string>();
 
             var context = DistributedOperationContext.Current;
-            if(context != null)
-                context.TraceId = correlationId;
+            if (context != null)
+                context.TraceId = traceId;
             return messageHeaders;
         }
 
@@ -66,7 +67,7 @@ namespace UtilsLogging.WCF
         public object BeforeCall(string operationName, object[] inputs)
         {
             Log.Information(
-                "Wcf Operation {WcfOperationName} called with operation inputs {WcfOperationInputs}.", 
+                "Wcf Operation {WcfOperationName} called with operation inputs {WcfOperationInputs}.",
                 operationName,
                 inputs
             );
@@ -76,8 +77,8 @@ namespace UtilsLogging.WCF
         public void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
         {
             Log.Information(
-                "Wcf Operation {WcfOperationName} called with return value {WcfOperationResult}.", 
-                operationName, 
+                "Wcf Operation {WcfOperationName} called with return value {WcfOperationResult}.",
+                operationName,
                 returnValue.ToString()
             );
         }

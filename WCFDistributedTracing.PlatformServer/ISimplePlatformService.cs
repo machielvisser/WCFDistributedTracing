@@ -1,7 +1,7 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace UtilsLogging.PlatformServer
+namespace WCFDistributedTracing.PlatformServer
 {
     [ServiceContract]
     public interface ISimplePlatformService
