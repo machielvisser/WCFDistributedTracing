@@ -20,11 +20,12 @@ var channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding
 channelFactory.Endpoint.AddTracingBehavior();
 var proxy = channelFactory.CreateChannel();
 
-using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
+// All WCF operations and logging statements will have the same TraceId within this using block
+using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
 {
     var traceId = DistributedOperationContext.Current?.TraceId;
-
-    // Every async operation should be continued on the FlowingOperationContextScope
+    
+    // Every async operation should be continued on the scope
     await Task.Delay(200).ContinueOnScope(scope);
 
     var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);

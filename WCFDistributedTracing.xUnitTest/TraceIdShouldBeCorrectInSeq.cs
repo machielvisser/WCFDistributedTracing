@@ -65,7 +65,7 @@ namespace WCFDistributedTracing.Test
 
                 Log.Information("Beginning of OperationScope");
 
-                // This makes the scope overlap with other scopes
+                // This makes the scope overlap with other scopes in time
                 await Task.Delay(delay).ContinueOnScope(scope);
 
                 Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
