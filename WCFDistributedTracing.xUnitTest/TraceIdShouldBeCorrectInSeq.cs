@@ -57,6 +57,8 @@ namespace WCFDistributedTracing.Test
 
             await Task.Delay(index * delay);
 
+            Assert.Null(OperationContext.Current);
+
             using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
             {
                 var traceId = DistributedOperationContext.Current?.TraceId;
@@ -69,6 +71,8 @@ namespace WCFDistributedTracing.Test
                 var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
             }
+
+            Assert.Null(OperationContext.Current);
 
             (proxy as IClientChannel)?.Close();
         }

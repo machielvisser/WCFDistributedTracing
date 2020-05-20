@@ -42,7 +42,8 @@ namespace WCFDistributedTracing.WCF
             if (_inflight)
                 return;
             _inflight = true;
-            // leave _thisContext as the current context
+            // restore the _originalContext as we might not come back to this thread
+            OperationContext.Current = _originalContext;
         }
 
         internal void AfterAwait()
