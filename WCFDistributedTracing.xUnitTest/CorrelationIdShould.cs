@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.ServiceModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 using WCFDistributedTracing.EdgeServer;
@@ -23,6 +26,7 @@ namespace WCFDistributedTracing.Test
                 // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
                 .WriteTo.TestOutput(testOutputHelper, outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
                 .Enrich.WithProcessName()
+                .Enrich.WithThreadId()
                 .Enrich.With<ContextEnricher>()
                 .CreateLogger();
 
@@ -42,7 +46,7 @@ namespace WCFDistributedTracing.Test
             await Observable
                 .Interval(TimeSpan.FromMilliseconds(100))
                 .Take(5)
-                .Select(_ => ExecuteTrace())
+                .Select(_ => Task.Run(ExecuteTrace))
                 .Wait();
         }
 
@@ -50,13 +54,13 @@ namespace WCFDistributedTracing.Test
         {
             var proxy = _channelFactory.CreateChannel();
 
-            Log.Information("TraceId before OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
+            Log.Information("Before OperationScope: {TraceId} {ThreadId}", DistributedOperationContext.Current?.TraceId, Thread.CurrentThread.ManagedThreadId);
 
             using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
             {
                 var traceId = DistributedOperationContext.Current?.TraceId;
 
-                Log.Information("TraceId beginning of OperationScope: {TraceId}", traceId);
+                Log.Information("Beginning of OperationScope: {TraceId} {ThreadId}", traceId, Thread.CurrentThread.ManagedThreadId);
 
                 await Task.Delay(200).ContinueOnScope(scope);
 
@@ -64,7 +68,7 @@ namespace WCFDistributedTracing.Test
                 Log.Information("Received: {Answer}", result);
             }
 
-            Log.Information("TraceId after OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
+            Log.Information("After OperationScope: {TraceId} {ThreadId}", DistributedOperationContext.Current?.TraceId, Thread.CurrentThread.ManagedThreadId);
 
             (proxy as IClientChannel)?.Close();
         }
