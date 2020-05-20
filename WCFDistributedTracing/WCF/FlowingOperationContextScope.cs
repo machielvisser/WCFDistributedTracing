@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,28 +58,51 @@ namespace WCFDistributedTracing.WCF
     // ContinueOnScope extension
     public static class TaskExt
     {
+        public static SimpleAwaiter ContinueOnScope(this Task @this, FlowingOperationContextScope scope)
+        {
+            return new SimpleAwaiter(@this, scope.BeforeAwait, scope.AfterAwait);
+        }
+
         public static SimpleAwaiter<TResult> ContinueOnScope<TResult>(this Task<TResult> @this, FlowingOperationContextScope scope)
         {
             return new SimpleAwaiter<TResult>(@this, scope.BeforeAwait, scope.AfterAwait);
         }
 
-        // awaiter
-        public class SimpleAwaiter<TResult> :
-            System.Runtime.CompilerServices.INotifyCompletion
+        public class SimpleAwaiter<TResult> : SimpleAwaiter
         {
-            readonly Task<TResult> _task;
+            public SimpleAwaiter(Task<TResult> task, Action beforeAwait, Action afterAwait) : 
+                base(task, beforeAwait, afterAwait)
+            {
+            }
+
+            public new SimpleAwaiter<TResult> GetAwaiter()
+            {
+                return this;
+            }
+
+            public TResult GetResult()
+            {
+                var task = _task as Task<TResult>;
+                return task.Result;
+            }
+        }
+
+        // awaiter
+        public class SimpleAwaiter : INotifyCompletion
+        {
+            protected Task _task;
 
             readonly Action _beforeAwait;
             readonly Action _afterAwait;
 
-            public SimpleAwaiter(Task<TResult> task, Action beforeAwait, Action afterAwait)
+            public SimpleAwaiter(Task task, Action beforeAwait, Action afterAwait)
             {
                 _task = task;
                 _beforeAwait = beforeAwait;
                 _afterAwait = afterAwait;
             }
 
-            public SimpleAwaiter<TResult> GetAwaiter()
+            public SimpleAwaiter GetAwaiter()
             {
                 return this;
             }
@@ -97,11 +121,6 @@ namespace WCFDistributedTracing.WCF
 
             }
 
-            public TResult GetResult()
-            {
-                return _task.Result;
-            }
-
             // INotifyCompletion
             public void OnCompleted(Action continuation)
             {
@@ -115,6 +134,10 @@ namespace WCFDistributedTracing.WCF
                 SynchronizationContext.Current != null ?
                     TaskScheduler.FromCurrentSynchronizationContext() :
                     TaskScheduler.Current);
+            }
+
+            public void GetResult()
+            {
             }
         }
     }

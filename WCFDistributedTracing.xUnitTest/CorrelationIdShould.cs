@@ -1,6 +1,8 @@
+using System;
+using System.Reactive.Linq;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using Serilog;
-using UtilsLogging.WCF;
 using WCFDistributedTracing.EdgeServer;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
@@ -9,8 +11,10 @@ using Xunit.Abstractions;
 
 namespace WCFDistributedTracing.Test
 {
-    public class CorrelationIdShould
+    public class CorrelationIdShould : IDisposable
     {
+        private readonly ChannelFactory<ISimpleEdgeService> _channelFactory;
+
         public CorrelationIdShould(ITestOutputHelper testOutputHelper)
         {
             Log.Logger = new LoggerConfiguration()
@@ -21,29 +25,53 @@ namespace WCFDistributedTracing.Test
                 .Enrich.WithProcessName()
                 .Enrich.With<ContextEnricher>()
                 .CreateLogger();
+
+            _channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
+            _channelFactory.Endpoint.AddTracingBehavior();
         }
 
         [Fact]
-        public async void Test()
-        {            
-            var factory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
-            factory.Endpoint.AddTracingBehavior();
-            var proxy = factory.CreateChannel();
+        public async void TestSingleTrace()
+        {
+            await ExecuteTrace();
+        }
+
+        [Fact]
+        public async void TestMultiThreadingTraces()
+        {
+            await Observable
+                .Interval(TimeSpan.FromMilliseconds(100))
+                .Take(5)
+                .Select(_ => ExecuteTrace())
+                .Wait();
+        }
+
+        private async Task ExecuteTrace()
+        {
+            var proxy = _channelFactory.CreateChannel();
 
             Log.Information("TraceId before OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
 
             using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
             {
-                Log.Information("TraceId beginning of OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
+                var traceId = DistributedOperationContext.Current?.TraceId;
 
-                var result = await proxy.Echo("Hello edge service").ContinueOnScope(scope);
+                Log.Information("TraceId beginning of OperationScope: {TraceId}", traceId);
+
+                await Task.Delay(200).ContinueOnScope(scope);
+
+                var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
             }
 
             Log.Information("TraceId after OperationScope: {TraceId}", DistributedOperationContext.Current?.TraceId);
 
             (proxy as IClientChannel)?.Close();
-            factory.Close();
+        }
+
+        public void Dispose()
+        {
+            _channelFactory.Close();
             Log.CloseAndFlush();
         }
     }

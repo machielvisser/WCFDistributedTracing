@@ -12,6 +12,26 @@ This will result in the following output in Seq:
 ### Application structure
 ![Diagram](./Documentation/Architecture.png)
 
+### Initiate new trace
+When there is not a current DistributedOperationContext a new one will be created with a new TraceId.
+It is also possible to force a new DistributedOperationContext when it is necessary to run multiple parralel WCF calls in the same thread using FlowingOperationContextScope:
+```csharp
+var channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
+channelFactory.Endpoint.AddTracingBehavior();
+var proxy = channelFactory.CreateChannel();
+
+using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
+{
+    var traceId = DistributedOperationContext.Current?.TraceId;
+
+    // Every async operation should be continued on the FlowingOperationContextScope
+    await Task.Delay(200).ContinueOnScope(scope);
+
+    var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
+    Log.Information("Received: {Answer}", result);
+}
+```
+
 ### Async pattern
 Since .Net 4.6.2 the OperationContext is maintained in Async scenarios. However this is disabled by default for backwards compatibility reasons. To disable disabling this feature add the following to the appSettings:
 ```
