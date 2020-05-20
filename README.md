@@ -44,4 +44,4 @@ At the beginning of a trace a new OperationContext is created using an Operation
 Duplex channels are supported. The interaction between the EdgeServer and the PlatformServer shows this.
 
 ## ToDo:
-* Multithreading unit test
+* Make sure OperationContext.Current is reset when a thread is given back to the threadpool
