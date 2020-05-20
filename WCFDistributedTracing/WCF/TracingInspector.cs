@@ -49,7 +49,7 @@ namespace UtilsLogging.WCF
 
         public virtual void BeforeSendReply(ref Message reply, object correlationState)
         {
-            if (correlationState is IDictionary<string, string> messageContext && messageContext.Count > 0)
+            if (reply != null && correlationState is IDictionary<string, string> messageContext && messageContext.Count > 0)
             {
                 foreach (var key in messageContext.Keys)
                 {

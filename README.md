@@ -20,7 +20,8 @@ Since .Net 4.6.2 the OperationContext is maintained in Async scenarios. However 
 
 At the beginning of a trace a new OperationContext is created using an OperationContextScope. The default OperationContextScope cannot handle the async scenario in its Dispose logic. Therefore we included the implementation of [FlowingOperationContextScope]( https://stackoverflow.com/questions/18284998/pattern-for-calling-wcf-service-using-async-await/22753055#22753055) created by [noseratio](https://stackoverflow.com/users/1768303/noseratio)
 
+### Duplex channel
+Duplex channels are supported. The interaction between the EdgeServer and the Platform server shows this.
 
 ## ToDo:
-* Duplex binding
 * Multithreading unit test

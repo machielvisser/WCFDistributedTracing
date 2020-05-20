@@ -1,5 +1,6 @@
 using Serilog;
 using System;
+using System.ServiceModel;
 using System.Threading.Tasks;
 
 namespace WCFDistributedTracing.PlatformServer
@@ -8,17 +9,21 @@ namespace WCFDistributedTracing.PlatformServer
     {
         public static string BaseAddress = $"http://{Environment.MachineName}:8001/Service";
 
-        public async Task<string> Echo(string text)
+        public async Task Echo(string text)
         {
             Log.Information("Received: {Input}", text);
 
-            var task = Task.Run(() => Log.Information("Async operation"));
+            await Task.Run(() => Log.Information("Some random async operation"));
 
-            Task.Delay(500).Wait();
+            await Callback.EchoClient("Using the duplex channel to let you know I received your message!");
+        }
 
-            await task;
-
-            return "Letting you know I received your message!";
+        ISimplePlatformServiceCallbackContract Callback
+        {
+            get
+            {
+                return OperationContext.Current.GetCallbackChannel<ISimplePlatformServiceCallbackContract>();
+            }
         }
     }
 }

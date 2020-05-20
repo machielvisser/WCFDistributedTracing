@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -77,6 +78,13 @@ namespace WCFDistributedTracing.WCF
 
         public TracingEnabledServiceHost(Type serviceType, params Uri[] baseAddresses) : base(serviceType, baseAddresses)
         {
+            var serviceDebugBehavior = Description.Behaviors
+                .Where(behavior => behavior is ServiceDebugBehavior)
+                .Select(behavior => behavior as ServiceDebugBehavior)
+                .FirstOrDefault();
+
+            if (serviceDebugBehavior != null)
+                serviceDebugBehavior.IncludeExceptionDetailInFaults = true;
         }
 
         public TracingEnabledServiceHost(object singletonInstance, params Uri[] baseAddresses) : base(singletonInstance, baseAddresses)

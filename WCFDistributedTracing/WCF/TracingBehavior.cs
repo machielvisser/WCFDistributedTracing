@@ -45,6 +45,12 @@ namespace WCFDistributedTracing.WCF
         {
             if(!clientRuntime.ClientMessageInspectors.OfType<TracingInspector>().Any())
                 clientRuntime.ClientMessageInspectors.Add(CreateClientMessageInspector());
+
+            if (!clientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
+                clientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
+
+            if (!clientRuntime.CallbackDispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
+                clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
         }
 
         public void ApplyClientBehavior(OperationDescription operationDescription, ClientOperation clientOperation)
@@ -63,18 +69,23 @@ namespace WCFDistributedTracing.WCF
                 if (!ed.DispatchRuntime.MessageInspectors.OfType<TracingInspector>()
                     .Any())
                     ed.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
+
+                if (!ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
+                    ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
             }
         }
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
-            foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
-            {
-                var cDispatcher = (ChannelDispatcher) channelDispatcherBase;
-                foreach (var eDispatcher in cDispatcher.Endpoints)
+            foreach (ChannelDispatcher channelDispatcherBase in serviceHostBase.ChannelDispatchers)
+            {;
+                foreach (var eDispatcher in channelDispatcherBase.Endpoints)
                 {
                     if(!eDispatcher.DispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
                         eDispatcher.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
+
+                    if (!eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
+                        eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
                 }
             }
         }

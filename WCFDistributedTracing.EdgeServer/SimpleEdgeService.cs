@@ -7,7 +7,7 @@ using WCFDistributedTracing.WCF;
 
 namespace WCFDistributedTracing.EdgeServer
 {
-    public class SimpleEdgeService : ISimpleEdgeService
+    public class SimpleEdgeService : ISimpleEdgeService, ISimplePlatformServiceCallbackContract
     {
         public static string BaseAddress = $"http://{Environment.MachineName}:8000/Service";
 
@@ -15,16 +15,20 @@ namespace WCFDistributedTracing.EdgeServer
         {
             Log.Information("Received: {Input}", text);
 
-            await Task.Run(() => Log.Information("Async operation"));
+            await Task.Run(() => Log.Information("Some random async operation"));
 
-            var factory = new ChannelFactory<ISimplePlatformService>(new BasicHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
+            var callbackInstance = new InstanceContext(this);
+            var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
             factory.Endpoint.AddTracingBehavior();
-            var proxy = factory.CreateChannel();
+            var proxy = factory.CreateChannel(callbackInstance);
 
-            var result = await proxy.Echo("Hello dependency service");
-            Log.Information("Received: {Answer}", result);
+            await proxy.Echo($"Hello {nameof(ISimplePlatformService)} here is a message from the client: {text}");
 
-            return $"The answer of the dependency was {result}";
+            return $"Forwarded your message to {nameof(ISimplePlatformService)}";
+        }
+        public async Task EchoClient(string message)
+        {
+            await Task.Run(() => Log.Information("Received from the PlatformService service: {Message}", message));
         }
     }
 }
