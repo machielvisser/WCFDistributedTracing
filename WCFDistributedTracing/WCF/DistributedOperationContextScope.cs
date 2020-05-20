@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace WCFDistributedTracing.WCF
 {    
-    public sealed class FlowingOperationContextScope : IDisposable
+    public sealed class DistributedOperationContextScope : IDisposable
     {
         bool _inflight = false;
         bool _disposed;
         OperationContext _thisContext = null;
         OperationContext _originalContext = null;
 
-        public FlowingOperationContextScope(IContextChannel channel) :
+        public DistributedOperationContextScope(IContextChannel channel) :
             this(new OperationContext(channel))
         {
         }
 
-        public FlowingOperationContextScope(OperationContext context)
+        public DistributedOperationContextScope(OperationContext context)
         {
             _originalContext = OperationContext.Current;
             OperationContext.Current = _thisContext = context;
@@ -58,12 +58,12 @@ namespace WCFDistributedTracing.WCF
     // ContinueOnScope extension
     public static class TaskExt
     {
-        public static SimpleAwaiter ContinueOnScope(this Task @this, FlowingOperationContextScope scope)
+        public static SimpleAwaiter ContinueOnScope(this Task @this, DistributedOperationContextScope scope)
         {
             return new SimpleAwaiter(@this, scope.BeforeAwait, scope.AfterAwait);
         }
 
-        public static SimpleAwaiter<TResult> ContinueOnScope<TResult>(this Task<TResult> @this, FlowingOperationContextScope scope)
+        public static SimpleAwaiter<TResult> ContinueOnScope<TResult>(this Task<TResult> @this, DistributedOperationContextScope scope)
         {
             return new SimpleAwaiter<TResult>(@this, scope.BeforeAwait, scope.AfterAwait);
         }

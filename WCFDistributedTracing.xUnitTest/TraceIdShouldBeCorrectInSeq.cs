@@ -41,7 +41,6 @@ namespace WCFDistributedTracing.Test
         [Fact]
         public void TestMultiThreadingTraces()
         {
-            // To prevent delays in the logged timestamps
             Log.Information("Staring TestMultiThreadingTraces");
 
             var executions = Enumerable
@@ -58,9 +57,7 @@ namespace WCFDistributedTracing.Test
 
             await Task.Delay(index * delay);
 
-            Log.Information("Before OperationScope: {TraceId} {ThreadId}", DistributedOperationContext.Current?.TraceId, Thread.CurrentThread.ManagedThreadId);
-
-            using (var scope = new FlowingOperationContextScope(proxy as IContextChannel))
+            using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
             {
                 var traceId = DistributedOperationContext.Current?.TraceId;
 
@@ -72,8 +69,6 @@ namespace WCFDistributedTracing.Test
                 var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
                 Log.Information("Received: {Answer}", result);
             }
-
-            Log.Information("After OperationScope: {TraceId} {ThreadId}", DistributedOperationContext.Current?.TraceId, Thread.CurrentThread.ManagedThreadId);
 
             (proxy as IClientChannel)?.Close();
         }
