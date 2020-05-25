@@ -57,7 +57,6 @@ namespace WCFDistributedTracing.WCF
         {
             if(!clientOperation.ParameterInspectors.OfType<TracingInspector>().Any())
                 clientOperation.ParameterInspectors.Add(new TracingInspector());
-
         }
 
         public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
@@ -78,7 +77,7 @@ namespace WCFDistributedTracing.WCF
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
             foreach (ChannelDispatcher channelDispatcherBase in serviceHostBase.ChannelDispatchers)
-            {;
+            {
                 foreach (var eDispatcher in channelDispatcherBase.Endpoints)
                 {
                     if(!eDispatcher.DispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
@@ -92,7 +91,8 @@ namespace WCFDistributedTracing.WCF
 
         public void ApplyDispatchBehavior(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
-            dispatchOperation.ParameterInspectors.Add(new TracingInspector());
+            if (!dispatchOperation.ParameterInspectors.OfType<TracingInspector>().Any())
+                dispatchOperation.ParameterInspectors.Add(new TracingInspector());
         }
 
         protected virtual IClientMessageInspector CreateClientMessageInspector() => new TracingInspector();

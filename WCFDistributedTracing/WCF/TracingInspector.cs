@@ -16,16 +16,15 @@ namespace UtilsLogging.WCF
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var traceId = DistributedOperationContext.Model?.TraceId;
+            var traceId = DistributedOperationContext.Current?.TraceId;
             TraceId = string.IsNullOrWhiteSpace(traceId) || !Guid.TryParse(traceId, out _)
-                ? Guid.NewGuid()
-
-                    .ToString()
+                ? Guid.NewGuid().ToString()
                 : traceId;
 
             var messageHeader = new MessageHeader<string>(TraceId);
             var untypedMessageHeader = messageHeader.GetUntypedHeader(TraceIdHeader, string.Empty);
             request.Headers.Add(untypedMessageHeader);
+
             return TraceId;
         }
 
@@ -33,17 +32,12 @@ namespace UtilsLogging.WCF
         {
             var traceId = request.Headers.FindHeader(TraceIdHeader, string.Empty) >= 0 ? request.Headers.GetHeader<string>(TraceIdHeader, string.Empty) : string.Empty;
 
-            IDictionary<string, string> messageHeaders =
-                !string.IsNullOrWhiteSpace(traceId) ?
-                    new Dictionary<string, string>
-                    {
-                        [TraceIdHeader] = traceId
-                    } :
+            var messageHeaders = !string.IsNullOrWhiteSpace(traceId) ?
+                    new Dictionary<string, string> { [TraceIdHeader] = traceId } :
                     new Dictionary<string, string>();
 
-            var context = DistributedOperationContext.Current;
-            if (context != null)
-                context.TraceId = traceId;
+            DistributedOperationContext.Current.TraceId = traceId;
+
             return messageHeaders;
         }
 

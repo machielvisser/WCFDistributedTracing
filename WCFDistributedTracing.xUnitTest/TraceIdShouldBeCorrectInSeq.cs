@@ -57,22 +57,19 @@ namespace WCFDistributedTracing.Test
 
             await Task.Delay(index * delay);
 
-            Assert.Null(OperationContext.Current);
+            Assert.NotNull(DistributedOperationContext.Current);
 
-            using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
-            {
-                var traceId = DistributedOperationContext.Current?.TraceId;
+            var traceId = DistributedOperationContext.Current?.TraceId;
 
-                Log.Information("Beginning of OperationScope");
+            Log.Information("Beginning of OperationScope");
 
-                // This makes the scope overlap with other scopes in time
-                await Task.Delay(delay).ContinueOnScope(scope);
+            // This makes the scope overlap with other scopes in time
+            await Task.Delay(delay);
 
-                Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
+            Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
 
-                var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
-                Log.Information("Received: {Answer}", result);
-            }
+            var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
+            Log.Information("Received: {Answer}", result);
 
             Assert.Null(OperationContext.Current);
 
