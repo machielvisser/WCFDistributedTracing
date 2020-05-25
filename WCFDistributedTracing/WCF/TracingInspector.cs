@@ -16,7 +16,7 @@ namespace UtilsLogging.WCF
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var traceId = DistributedOperationContext.Current?.TraceId;
+            var traceId = DistributedOperationContext.Model?.TraceId;
             TraceId = string.IsNullOrWhiteSpace(traceId) || !Guid.TryParse(traceId, out _)
                 ? Guid.NewGuid()
 
