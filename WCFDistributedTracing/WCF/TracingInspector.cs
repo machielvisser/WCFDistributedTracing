@@ -12,7 +12,7 @@ namespace UtilsLogging.WCF
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var context = DistributedOperationContext.Current;
+            var context = DistributedOperationContext.Current ?? new DistributedOperationContext();
 
             var header = new MessageHeader<DistributedOperationContext>(context)
                 .GetUntypedHeader(ContextHeader, string.Empty);
