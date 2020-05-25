@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
@@ -10,47 +8,37 @@ namespace UtilsLogging.WCF
 {
     public class TracingInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
     {
-        public string TraceId { get; set; }
-
-        public string TraceIdHeader { get; } = "TraceId";
+        public string ContextHeader { get; } = "TraceContext";
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var traceId = DistributedOperationContext.Current?.TraceId;
-            TraceId = string.IsNullOrWhiteSpace(traceId) || !Guid.TryParse(traceId, out _)
-                ? Guid.NewGuid().ToString()
-                : traceId;
+            var context = DistributedOperationContext.Current;
 
-            var messageHeader = new MessageHeader<string>(TraceId);
-            var untypedMessageHeader = messageHeader.GetUntypedHeader(TraceIdHeader, string.Empty);
-            request.Headers.Add(untypedMessageHeader);
+            var header = new MessageHeader<DistributedOperationContext>(context)
+                .GetUntypedHeader(ContextHeader, string.Empty);
 
-            return TraceId;
+            request.Headers.Add(header);
+
+            return context;
         }
 
         public virtual object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var traceId = request.Headers.FindHeader(TraceIdHeader, string.Empty) >= 0 ? request.Headers.GetHeader<string>(TraceIdHeader, string.Empty) : string.Empty;
+            var context = request.Headers.GetHeader<DistributedOperationContext>(ContextHeader, string.Empty);
 
-            var messageHeaders = !string.IsNullOrWhiteSpace(traceId) ?
-                    new Dictionary<string, string> { [TraceIdHeader] = traceId } :
-                    new Dictionary<string, string>();
+            DistributedOperationContext.Current = context;
 
-            DistributedOperationContext.Current.TraceId = traceId;
-
-            return messageHeaders;
+            return context;
         }
 
         public virtual void BeforeSendReply(ref Message reply, object correlationState)
         {
-            if (reply != null && correlationState is IDictionary<string, string> messageContext && messageContext.Count > 0)
+            if (reply != null && correlationState is DistributedOperationContext context)
             {
-                foreach (var key in messageContext.Keys)
-                {
-                    var messageHeader = new MessageHeader<string>(messageContext[key]);
-                    var untypedMessageHeader = messageHeader.GetUntypedHeader(key, string.Empty);
-                    reply.Headers.Add(untypedMessageHeader);
-                }
+                var header = new MessageHeader<DistributedOperationContext>(context)
+                    .GetUntypedHeader(ContextHeader, string.Empty);
+
+                reply.Headers.Add(header);
             }
         }
 

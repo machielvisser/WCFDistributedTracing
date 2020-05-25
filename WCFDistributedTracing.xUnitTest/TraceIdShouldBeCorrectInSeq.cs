@@ -57,7 +57,10 @@ namespace WCFDistributedTracing.Test
 
             await Task.Delay(index * delay);
 
-            Assert.NotNull(DistributedOperationContext.Current);
+            Assert.Null(DistributedOperationContext.Current);
+
+            // Initialize new ConteDistributedOperationContext
+            DistributedOperationContext.Current = new DistributedOperationContext();
 
             var traceId = DistributedOperationContext.Current?.TraceId;
 
