@@ -16,12 +16,12 @@ namespace UtilsLogging.WCF
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var correlationId = DistributedOperationContext.Current?.TraceId;
-            TraceId = string.IsNullOrWhiteSpace(correlationId) || !Guid.TryParse(correlationId, out _)
+            var traceId = DistributedOperationContext.Current?.TraceId;
+            TraceId = string.IsNullOrWhiteSpace(traceId) || !Guid.TryParse(traceId, out _)
                 ? Guid.NewGuid()
 
                     .ToString()
-                : correlationId;
+                : traceId;
 
             var messageHeader = new MessageHeader<string>(TraceId);
             var untypedMessageHeader = messageHeader.GetUntypedHeader(TraceIdHeader, string.Empty);
