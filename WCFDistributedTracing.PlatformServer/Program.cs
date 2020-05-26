@@ -17,6 +17,7 @@ namespace WCFDistributedTracing.PlatformServer
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
+            Log.CloseAndFlush();
             host.Close();
         }
 

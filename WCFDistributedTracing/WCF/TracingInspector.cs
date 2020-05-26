@@ -2,7 +2,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using Serilog;
-using WCFDistributedTracing.WCF;
+using WCFDistributedTracing;
 
 namespace UtilsLogging.WCF
 {

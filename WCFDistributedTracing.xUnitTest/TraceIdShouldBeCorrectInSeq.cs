@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading.Tasks;
@@ -14,6 +17,7 @@ namespace WCFDistributedTracing.Test
     public class TraceIdShouldBeCorrectInSeq : IDisposable
     {
         private readonly ChannelFactory<ISimpleEdgeService> _channelFactory;
+        private readonly List<Process> _services;
 
         public TraceIdShouldBeCorrectInSeq(ITestOutputHelper testOutputHelper)
         {
@@ -29,6 +33,32 @@ namespace WCFDistributedTracing.Test
 
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
             _channelFactory.Endpoint.AddTracingBehavior();
+
+            var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
+            var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
+            var buildPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Skip(currectDirectory.Length - 3).ToArray());
+            _services = new List<Process>
+            {
+                StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
+                StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
+            };
+
+            Log.Information(Directory.GetCurrentDirectory());
+        }
+
+        private Process StartService(string app)
+        {
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = app,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true
+            };
+
+            return Process.Start(processStartInfo);
         }
 
         [Fact]
@@ -49,7 +79,7 @@ namespace WCFDistributedTracing.Test
             var result = await proxy.Echo($"Hello edge service");
             Log.Information("Received: {Answer}", result);
 
-            Assert.Null(DistributedOperationContext.Current);
+            Assert.NotEqual(Guid.Empty, result.TraceId);
 
             (proxy as IClientChannel)?.Close();
         }
@@ -61,7 +91,7 @@ namespace WCFDistributedTracing.Test
             Log.Information("Staring TestMultiThreadingTraces");
 
             var executions = Enumerable
-                .Range(0, 5)
+                .Range(0, 4) // More than 4 results in problems with Reliable Messaging default 4 channels -> can be increased with a custom binding
                 .Select(index => ExecuteAsyncTrace(index, 100))
                 .ToArray();
 
@@ -81,15 +111,15 @@ namespace WCFDistributedTracing.Test
 
             var traceId = DistributedOperationContext.Current?.TraceId;
 
-            Log.Information("Beginning of OperationScope");
-
             // This makes the scope overlap with other scopes in time
             await Task.Delay(delay);
 
             Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
 
             var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
-            Log.Information("Received: {Answer}", result);
+            Log.Information("Received: {Answer}", result.Message);
+
+            Assert.Equal(traceId, result.TraceId);
 
             (proxy as IClientChannel)?.Close();
         }
@@ -97,6 +127,14 @@ namespace WCFDistributedTracing.Test
         public void Dispose()
         {
             _channelFactory.Close();
+
+            foreach (var service in _services)
+            {
+                service.StandardInput.WriteLine();
+                service.WaitForExit();
+                service.Close();
+            }
+
             Log.CloseAndFlush();
         }
     }
