@@ -32,12 +32,14 @@ namespace WCFDistributedTracing.Test
         }
 
         [Fact]
+        // Check that all logging has the same TraceId
         public async void TestSingleTrace()
         {
             await ExecuteAsyncTrace(0, 0);
         }
 
         [Fact]
+        // Check that the call was send with an initialized context
         public async void TestAutoContext()
         {
             var proxy = _channelFactory.CreateChannel();
@@ -53,6 +55,7 @@ namespace WCFDistributedTracing.Test
         }
 
         [Fact]
+        // Check the correctness of the TraceIds manually
         public void TestMultiThreadingTraces()
         {
             Log.Information("Staring TestMultiThreadingTraces");

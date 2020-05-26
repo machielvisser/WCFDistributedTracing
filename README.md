@@ -13,36 +13,27 @@ This will result in the following output in Seq:
 ![Diagram](./Documentation/Architecture.png)
 
 ### Initiate new trace
-When there is not a current DistributedOperationContext a new one will be created with a new TraceId.
-It is also possible to force a new DistributedOperationContext when it is necessary to run multiple parralel WCF calls in the same thread using FlowingOperationContextScope:
+When there is not a current DistributedOperationContext during a WCF call a new one will be created with a new TraceId.
+It is also possible to force a new DistributedOperationContext when it is necessary to run multiple parralel WCF calls with the same TraceId:
 ```csharp
 var channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
 channelFactory.Endpoint.AddTracingBehavior();
 var proxy = channelFactory.CreateChannel();
 
-// All WCF operations and logging statements will have the same TraceId within this using block
-using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
-{
-    var traceId = DistributedOperationContext.Current?.TraceId;
-    
-    // Every async operation should be continued on the scope
-    await Task.Delay(200).ContinueOnScope(scope);
+// All WCF operations and logging statements will have the same TraceId after this initialization
+DistributedOperationContext.Current = new DistributedOperationContext();
 
-    var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
-    Log.Information("Received: {Answer}", result);
-}
+var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
+Log.Information("Received: {Answer}", result);
 ```
 
 ### Async pattern
-Since .Net 4.6.2 the OperationContext is maintained in Async scenarios. However this is disabled by default for backwards compatibility reasons. To disable disabling this feature add the following to the appSettings:
-```
-<add key="wcf:disableOperationContextAsyncFlow" value="false" />
-```
-
-At the beginning of a trace a new OperationContext is created using an OperationContextScope. The default OperationContextScope cannot handle the async scenario in its Dispose logic. Therefore we included the implementation of [FlowingOperationContextScope]( https://stackoverflow.com/questions/18284998/pattern-for-calling-wcf-service-using-async-await/22753055#22753055) created by [noseratio](https://stackoverflow.com/users/1768303/noseratio)
+The DistributedOperationContext is scoped using AsyncLocal. That means it flows with async operations downstream, but not upstream if changed downstream.
 
 ### Duplex channel
 Duplex channels are supported. The interaction between the EdgeServer and the PlatformServer shows this.
 
 ## ToDo:
-* 
+* Log WCF call including parameters
+* Let the unit test automatically test the distributed output somehow
+* Make it a NuGet library
