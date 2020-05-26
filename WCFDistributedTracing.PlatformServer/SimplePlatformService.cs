@@ -13,9 +13,13 @@ namespace WCFDistributedTracing.PlatformServer
         {
             Log.Information("Received: {Input}", text);
 
+            // OperationContext.Current is not maintained with async unless this is set in appsettings:  
+            // <addkey="Switch.System.ServiceModel.DisableOperationContextAsyncFlow"value="false"/>
+            var client = Callback;
+
             await Task.Run(() => Log.Information("Some random async operation"));
 
-            await Callback.EchoClient("Using the duplex channel to let you know I received your message!");
+            await client.EchoClient("Using the duplex channel to let you know I received your message!");
         }
 
         ISimplePlatformServiceCallbackContract Callback
