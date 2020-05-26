@@ -13,6 +13,11 @@ This will result in the following output in Seq:
 ### Serilog
 Download and install [Seq](https://datalust.co/seq)
 
+### Add WCFDistributedTracing
+```powershell
+Install-Package WCFDistributedTracing
+```
+
 ### Add Behavior
 ```csharp
 var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
