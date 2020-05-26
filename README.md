@@ -1,4 +1,5 @@
 # WCFDistributedTracing
+![Publish NuGet](https://github.com/machielvisser/WCFDistributedTracing/workflows/Publish%20NuGet/badge.svg)
 
 This project shows how distributed tracing in WCF can be used to do structured logging.
 DistributedOperationContext is used to pass context information through the distributed execution path.
