@@ -64,8 +64,6 @@ namespace WCFDistributedTracing.Test
         // Check that all logging has the same TraceId
         public async void TestSingleTrace()
         {
-            _services.First().StandardOutput.
-
             await ExecuteAsyncTrace(0, 0);
         }
 
