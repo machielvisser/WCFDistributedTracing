@@ -37,11 +37,11 @@ namespace WCFDistributedTracing.Test
             var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
             var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
             var buildPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Skip(currectDirectory.Length - 3).ToArray());
-            //_services = new List<Process>
-            //{
-            //    StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
-            //    StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
-            //};
+            _services = new List<Process>
+            {
+                StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
+                StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
+            };
 
             Log.Information(Directory.GetCurrentDirectory());
         }
@@ -91,7 +91,7 @@ namespace WCFDistributedTracing.Test
             Log.Information("Staring TestMultiThreadingTraces");
 
             var executions = Enumerable
-                .Range(0, 5)
+                .Range(0, 4) // More than 4 results in problems with Reliable Messaging default 4 channels -> can be increased with a custom binding
                 .Select(index => ExecuteAsyncTrace(index, 100))
                 .ToArray();
 
