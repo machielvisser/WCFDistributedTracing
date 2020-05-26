@@ -16,11 +16,6 @@ jobs:
      
       - name: Setup MSBuild Path
         uses: warrenbuckley/Setup-MSBuild@v1
-        
-      - uses: nuget/setup-nuget@v1.0.2
-        with:
-          nuget-api-key: ${{ secrets.NuGetAPIKey }}
-          nuget-version: 'latest'
           
       - name: Restore NuGet Packages
         run: nuget restore WCFDistributedTracing\WCFDistributedTracing.csproj
@@ -32,5 +27,5 @@ jobs:
         run: nuget pack WCFDistributedTracing.csproj -Properties Configuration=Release
         working-directory: WCFDistributedTracing
         
-      - run: nuget push *.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+      - run: dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json --skip-duplicate -k ${{ secrets.NuGetAPIKey }}
         working-directory: WCFDistributedTracing
