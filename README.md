@@ -6,7 +6,7 @@ DistributedOperationContext is used to pass context information through the dist
 Serilog is used as the logging framework, with an output to Seq for central analysis.
 
 This will result in the following output in Seq:
-![Diagram](https://github.com/machielvisser/WCFDistributedTracing/Documentation/Seq.PNG)
+![Diagram](https://raw.githubusercontent.com/machielvisser/WCFDistributedTracing/master/Documentation/Seq.PNG)
 
 ## How to use
 
@@ -56,7 +56,7 @@ Log.Information("Received: {Answer}", result);
 ## Details
 
 ### Application structure
-![Diagram](./Documentation/Architecture.png)
+![Diagram](https://raw.githubusercontent.com/machielvisser/WCFDistributedTracing/master/Documentation/Architecture.png)
 
 ### Async pattern
 The DistributedOperationContext is scoped using AsyncLocal. That means it flows with async operations downstream, but not upstream if changed downstream.
