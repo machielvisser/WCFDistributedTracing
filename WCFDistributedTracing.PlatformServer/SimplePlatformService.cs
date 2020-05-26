@@ -19,7 +19,7 @@ namespace WCFDistributedTracing.PlatformServer
 
             await Task.Run(() => Log.Information("Some random async operation"));
 
-            await client.EchoClient("Using the duplex channel to let you know I received your message!");
+            await client.EchoClient("Using the duplex channel to let you know I received your message!", DistributedOperationContext.Current.TraceId);
         }
 
         ISimplePlatformServiceCallbackContract Callback

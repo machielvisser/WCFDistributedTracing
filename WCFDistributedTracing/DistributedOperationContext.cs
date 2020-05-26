@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
-namespace WCFDistributedTracing.WCF
+namespace WCFDistributedTracing
 {
     public class DistributedOperationContext
     {

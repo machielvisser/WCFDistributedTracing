@@ -7,6 +7,6 @@ namespace WCFDistributedTracing.EdgeServer
     public interface ISimpleEdgeService
     {
         [OperationContract]
-        Task<string> Echo(string text);
+        Task<Answer> Echo(string text);
     }
 }

@@ -11,7 +11,7 @@ namespace WCFDistributedTracing.EdgeServer
     {
         public static string BaseAddress = $"http://{Environment.MachineName}:8000/Service";
 
-        public async Task<string> Echo(string text)
+        public async Task<Answer> Echo(string text)
         {
             Log.Information("Received: {Input}", text);
 
@@ -24,11 +24,15 @@ namespace WCFDistributedTracing.EdgeServer
 
             await proxy.Echo($"Hello {nameof(ISimplePlatformService)} here is a message from the client: {text}");
 
-            return $"Forwarded your message to {nameof(ISimplePlatformService)}";
+            return new Answer
+            {
+                Message = $"Forwarded your message to {nameof(ISimplePlatformService)}",
+                TraceId = DistributedOperationContext.Current.TraceId
+            };
         }
-        public async Task EchoClient(string message)
+        public async Task EchoClient(string message, Guid traceId)
         {
-            await Task.Run(() => Log.Information($"Received from the {nameof(ISimplePlatformService)}: {{Message}}", message));
+            await Task.Run(() => Log.Information($"Received from the {nameof(ISimplePlatformService)}: '{{Message}}' with {{TraceId}}", message, traceId));
         }
     }
 }

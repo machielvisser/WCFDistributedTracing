@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Serilog;
 using WCFDistributedTracing.EdgeServer;
 using WCFDistributedTracing.Serilog;
@@ -38,24 +37,26 @@ namespace WCFDistributedTracing.Test
             var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
             var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
             var buildPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Skip(currectDirectory.Length - 3).ToArray());
-            _services = new List<Process>
-            {
-                StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
-                StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
-            };
+            //_services = new List<Process>
+            //{
+            //    StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
+            //    StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
+            //};
 
             Log.Information(Directory.GetCurrentDirectory());
         }
 
         private Process StartService(string app)
         {
-            ProcessStartInfo processStartInfo = new ProcessStartInfo();
-            processStartInfo.FileName = app;
-            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            processStartInfo.CreateNoWindow = true;
-            processStartInfo.UseShellExecute = false;
-            processStartInfo.RedirectStandardInput = true;
-            processStartInfo.RedirectStandardOutput = true;
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = app,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true
+            };
 
             return Process.Start(processStartInfo);
         }
@@ -78,7 +79,7 @@ namespace WCFDistributedTracing.Test
             var result = await proxy.Echo($"Hello edge service");
             Log.Information("Received: {Answer}", result);
 
-            Assert.Null(DistributedOperationContext.Current);
+            Assert.NotEqual(Guid.Empty, result.TraceId);
 
             (proxy as IClientChannel)?.Close();
         }
@@ -110,15 +111,15 @@ namespace WCFDistributedTracing.Test
 
             var traceId = DistributedOperationContext.Current?.TraceId;
 
-            Log.Information("Beginning of OperationScope");
-
             // This makes the scope overlap with other scopes in time
             await Task.Delay(delay);
 
             Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
 
             var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
-            Log.Information("Received: {Answer}", result);
+            Log.Information("Received: {Answer}", result.Message);
+
+            Assert.Equal(traceId, result.TraceId);
 
             (proxy as IClientChannel)?.Close();
         }
