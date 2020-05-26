@@ -6,7 +6,7 @@ DistributedOperationContext is used to pass context information through the dist
 Serilog is used as the logging framework, with an output to Seq for central analysis.
 
 This will result in the following output in Seq:
-![Diagram](./Documentation/Seq.PNG)
+![Diagram](https://github.com/machielvisser/WCFDistributedTracing/Documentation/Seq.PNG)
 
 ## How to use
 
