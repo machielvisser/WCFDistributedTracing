@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Serilog;
 using WCFDistributedTracing.EdgeServer;
 using WCFDistributedTracing.Serilog;
@@ -14,6 +18,7 @@ namespace WCFDistributedTracing.Test
     public class TraceIdShouldBeCorrectInSeq : IDisposable
     {
         private readonly ChannelFactory<ISimpleEdgeService> _channelFactory;
+        private readonly List<Process> _services;
 
         public TraceIdShouldBeCorrectInSeq(ITestOutputHelper testOutputHelper)
         {
@@ -29,12 +34,38 @@ namespace WCFDistributedTracing.Test
 
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
             _channelFactory.Endpoint.AddTracingBehavior();
+
+            var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
+            var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
+            var buildPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Skip(currectDirectory.Length - 3).ToArray());
+            _services = new List<Process>
+            {
+                StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
+                StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
+            };
+
+            Log.Information(Directory.GetCurrentDirectory());
+        }
+
+        private Process StartService(string app)
+        {
+            ProcessStartInfo processStartInfo = new ProcessStartInfo();
+            processStartInfo.FileName = app;
+            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            processStartInfo.CreateNoWindow = true;
+            processStartInfo.UseShellExecute = false;
+            processStartInfo.RedirectStandardInput = true;
+            processStartInfo.RedirectStandardOutput = true;
+
+            return Process.Start(processStartInfo);
         }
 
         [Fact]
         // Check that all logging has the same TraceId
         public async void TestSingleTrace()
         {
+            _services.First().StandardOutput.
+
             await ExecuteAsyncTrace(0, 0);
         }
 
@@ -97,6 +128,14 @@ namespace WCFDistributedTracing.Test
         public void Dispose()
         {
             _channelFactory.Close();
+
+            foreach (var service in _services)
+            {
+                service.StandardInput.WriteLine();
+                service.WaitForExit();
+                service.Close();
+            }
+
             Log.CloseAndFlush();
         }
     }
