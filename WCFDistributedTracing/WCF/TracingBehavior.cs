@@ -71,6 +71,12 @@ namespace WCFDistributedTracing.WCF
 
                 if (!ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
                     ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(new TracingInspector());
+
+                foreach (var operation in ed.DispatchRuntime.Operations)
+                {
+                    if (!operation.ParameterInspectors.OfType<TracingInspector>().Any())
+                        operation.ParameterInspectors.Add(new TracingInspector());
+                }
             }
         }
 

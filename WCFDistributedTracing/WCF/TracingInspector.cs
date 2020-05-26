@@ -44,24 +44,36 @@ namespace UtilsLogging.WCF
 
         public virtual void AfterReceiveReply(ref Message reply, object correlationState)
         {
+            if (correlationState is DistributedOperationContext context)
+                DistributedOperationContext.Current = context;
         }
 
         public object BeforeCall(string operationName, object[] inputs)
         {
+            var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+
             Log.Information(
-                "Wcf Operation {WcfOperationName} called with operation inputs {WcfOperationInputs}.",
+                "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}.",
                 operationName,
+                endpoint,
                 inputs
             );
-            return null;
+
+            return DistributedOperationContext.Current;
         }
 
         public void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
         {
+            if (correlationState is DistributedOperationContext context)
+                DistributedOperationContext.Current = context;
+
+            var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+
             Log.Information(
-                "Wcf Operation {WcfOperationName} called with return value {WcfOperationResult}.",
+                "Operation {OperationName} on {Endpoint} called with return value {ReturnValue}.",
                 operationName,
-                returnValue.ToString()
+                endpoint,
+                returnValue?.ToString()
             );
         }
     }
