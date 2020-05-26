@@ -13,12 +13,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
+     
+      - name: Setup MSBuild Path
+        uses: warrenbuckley/Setup-MSBuild@v1
         
       - uses: nuget/setup-nuget@v1.0.2
         with:
           nuget-api-key: ${{ secrets.NuGetAPIKey }}
           nuget-version: 'latest'
-
+          
+      - name: Restore NuGet Packages
+        run: nuget restore WCFDistributedTracing\WCFDistributedTracing.csproj
+        
+      - name: Build and Publish Web App
+        run: msbuild WCFDistributedTracing\WCFDistributedTracing.csproj /p:Configuration=Release
+ 
       - name: Pack
         run: nuget pack
         working-directory: WCFDistributedTracing
