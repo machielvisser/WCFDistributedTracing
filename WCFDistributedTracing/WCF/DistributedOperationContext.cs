@@ -1,45 +1,23 @@
 ﻿using System;
-using System.ServiceModel;
+using System.Threading;
 
 namespace WCFDistributedTracing.WCF
 {
-    public class DistributedOperationContext : IExtension<OperationContext>
+    public class DistributedOperationContext
     {
+        private static readonly AsyncLocal<DistributedOperationContext> _current = new AsyncLocal<DistributedOperationContext>();
+
+        public Guid TraceId { get; set; }
+
         public DistributedOperationContext()
         {
-            ResetCorrelationId();
-        }
-
-        public string TraceId { get; set; }
-
-        public void ResetCorrelationId()
-        {
-            TraceId = Guid
-                .NewGuid()
-                .ToString();
+            TraceId = Guid.NewGuid();
         }
 
         public static DistributedOperationContext Current
         {
-            get
-            {
-                var operationContext = OperationContext.Current;
-                if (operationContext == null) return null;
-                var context = operationContext.Extensions.Find<DistributedOperationContext>();
-                if (context != null) return context;
-                context = new DistributedOperationContext();
-                operationContext.Extensions.Add(context);
-                return context;
-            }
-        }
-
-        public void Attach(OperationContext owner)
-        {
-            // Method intentionally left empty.
-        }
-        public void Detach(OperationContext owner)
-        {
-            // Method intentionally left empty.
+            get => _current.Value;
+            set => _current.Value = value;
         }
     }
 }

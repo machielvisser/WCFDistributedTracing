@@ -44,20 +44,19 @@ namespace WCFDistributedTracing.WCF
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
             if(!clientRuntime.ClientMessageInspectors.OfType<TracingInspector>().Any())
-                clientRuntime.ClientMessageInspectors.Add(CreateClientMessageInspector());
+                clientRuntime.ClientMessageInspectors.Add(new TracingInspector());
 
             if (!clientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
-                clientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
+                clientRuntime.MessageInspectors.Add(new TracingInspector());
 
             if (!clientRuntime.CallbackDispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
-                clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
+                clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add(new TracingInspector());
         }
 
         public void ApplyClientBehavior(OperationDescription operationDescription, ClientOperation clientOperation)
         {
             if(!clientOperation.ParameterInspectors.OfType<TracingInspector>().Any())
                 clientOperation.ParameterInspectors.Add(new TracingInspector());
-
         }
 
         public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
@@ -68,35 +67,38 @@ namespace WCFDistributedTracing.WCF
             {
                 if (!ed.DispatchRuntime.MessageInspectors.OfType<TracingInspector>()
                     .Any())
-                    ed.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
+                    ed.DispatchRuntime.MessageInspectors.Add(new TracingInspector());
 
                 if (!ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
-                    ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
+                    ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(new TracingInspector());
             }
         }
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
             foreach (ChannelDispatcher channelDispatcherBase in serviceHostBase.ChannelDispatchers)
-            {;
+            {
                 foreach (var eDispatcher in channelDispatcherBase.Endpoints)
                 {
                     if(!eDispatcher.DispatchRuntime.MessageInspectors.OfType<TracingInspector>().Any())
-                        eDispatcher.DispatchRuntime.MessageInspectors.Add(CreateDispatchMessageInspector());
+                        eDispatcher.DispatchRuntime.MessageInspectors.Add(new TracingInspector());
 
                     if (!eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.OfType<TracingInspector>().Any())
-                        eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(CreateClientMessageInspector());
+                        eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.Add(new TracingInspector());
+
+                    foreach (var dispatchOperation in eDispatcher.DispatchRuntime.Operations)
+                    {
+                        if (!dispatchOperation.ParameterInspectors.OfType<TracingInspector>().Any())
+                            dispatchOperation.ParameterInspectors.Add(new TracingInspector());
+                    }
                 }
             }
         }
 
         public void ApplyDispatchBehavior(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
-            dispatchOperation.ParameterInspectors.Add(new TracingInspector());
+            if (!dispatchOperation.ParameterInspectors.OfType<TracingInspector>().Any())
+                dispatchOperation.ParameterInspectors.Add(new TracingInspector());
         }
-
-        protected virtual IClientMessageInspector CreateClientMessageInspector() => new TracingInspector();
-
-        protected virtual IDispatchMessageInspector CreateDispatchMessageInspector() => new TracingInspector();
     }
 }

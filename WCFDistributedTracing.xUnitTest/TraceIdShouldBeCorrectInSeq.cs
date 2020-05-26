@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.ServiceModel;
-using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 using WCFDistributedTracing.EdgeServer;
@@ -35,7 +34,22 @@ namespace WCFDistributedTracing.Test
         [Fact]
         public async void TestSingleTrace()
         {
-            await ExecuteTrace(0, 0);
+            await ExecuteAsyncTrace(0, 0);
+        }
+
+        [Fact]
+        public async void TestAutoContext()
+        {
+            var proxy = _channelFactory.CreateChannel();
+
+            Assert.Null(DistributedOperationContext.Current);
+
+            var result = await proxy.Echo($"Hello edge service");
+            Log.Information("Received: {Answer}", result);
+
+            Assert.Null(DistributedOperationContext.Current);
+
+            (proxy as IClientChannel)?.Close();
         }
 
         [Fact]
@@ -45,36 +59,34 @@ namespace WCFDistributedTracing.Test
 
             var executions = Enumerable
                 .Range(0, 5)
-                .Select(index => ExecuteTrace(index, 100))
+                .Select(index => ExecuteAsyncTrace(index, 100))
                 .ToArray();
 
             Task.WaitAll(executions);
         }
 
-        private async Task ExecuteTrace(int index, int delay)
+        private async Task ExecuteAsyncTrace(int index, int delay)
         {
             var proxy = _channelFactory.CreateChannel();
 
             await Task.Delay(index * delay);
 
-            Assert.Null(OperationContext.Current);
+            Assert.Null(DistributedOperationContext.Current);
 
-            using (var scope = new DistributedOperationContextScope(proxy as IContextChannel))
-            {
-                var traceId = DistributedOperationContext.Current?.TraceId;
+            // Initialize new ConteDistributedOperationContext
+            DistributedOperationContext.Current = new DistributedOperationContext();
 
-                Log.Information("Beginning of OperationScope");
+            var traceId = DistributedOperationContext.Current?.TraceId;
 
-                // This makes the scope overlap with other scopes in time
-                await Task.Delay(delay).ContinueOnScope(scope);
+            Log.Information("Beginning of OperationScope");
 
-                Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
+            // This makes the scope overlap with other scopes in time
+            await Task.Delay(delay);
 
-                var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
-                Log.Information("Received: {Answer}", result);
-            }
+            Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
 
-            Assert.Null(OperationContext.Current);
+            var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
+            Log.Information("Received: {Answer}", result);
 
             (proxy as IClientChannel)?.Close();
         }
