@@ -1,0 +1,27 @@
+name: Publish NuGet
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  publish:
+    name: build, pack & publish
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@master
+        
+      - uses: nuget/setup-nuget@v1.0.2
+        with:
+          nuget-api-key: ${{ secrets.NuGetAPIKey }}
+          nuget-version: 'latest'
+
+      - name: Pack
+        run: nuget pack
+        working-directory: WCFDistributedTracing
+        
+      - run: nuget push *.nupkg -Source https://api.nuget.org/v3/index.json
+        working-directory: WCFDistributedTracing
