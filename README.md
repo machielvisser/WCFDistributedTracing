@@ -10,15 +10,15 @@ This will result in the following output in Seq:
 
 ## How to use
 
-### Serilog
+### Seq
 Download and install [Seq](https://datalust.co/seq)
 
-### Add WCFDistributedTracing
+### Add the WCFDistributedTracing package
 ```powershell
 Install-Package WCFDistributedTracing
 ```
 
-### Add Behavior
+### Add the TracingBehavior
 ```csharp
 var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
 var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new BasicHttpBinding(), "");
@@ -30,7 +30,7 @@ factory.Endpoint.AddTracingBehavior();
 var proxy = factory.CreateChannel(callbackInstance);
 ```
 
-### Add Serilog Enricher
+### Add the Serilog ContextEnricher
 ```csharp
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Seq("http://localhost:5341")
@@ -42,7 +42,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 ```
 
-### Initiate new trace
+### Initiate new trace (not required)
 When there is not a current DistributedOperationContext during a WCF call a new one will be created with a new TraceId.
 It is also possible to force a new DistributedOperationContext when it is necessary to run multiple parralel WCF calls with the same TraceId:
 ```csharp
