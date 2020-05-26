@@ -29,5 +29,5 @@ jobs:
       - name: Build
         run: msbuild WCFDistributedTracing\WCFDistributedTracing.csproj /p:Configuration=Release /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
         
-      - run: nuget push *.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+      - run: nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
         working-directory: WCFDistributedTracing
