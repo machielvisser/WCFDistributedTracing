@@ -27,11 +27,7 @@ jobs:
         run: nuget restore WCFDistributedTracing\WCFDistributedTracing.csproj
         
       - name: Build
-        run: msbuild WCFDistributedTracing\WCFDistributedTracing.csproj /p:Configuration=Release
- 
-      - name: Pack
-        run: nuget pack WCFDistributedTracing.csproj -Properties Configuration=Release -Symbols -SymbolPackageFormat snupkg
-        working-directory: WCFDistributedTracing
+        run: msbuild WCFDistributedTracing\WCFDistributedTracing.csproj /p:Configuration=Release /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
         
-      - run: dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json --skip-duplicate -k ${{ secrets.NuGetAPIKey }}
+      - run: nuget push *.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
         working-directory: WCFDistributedTracing
