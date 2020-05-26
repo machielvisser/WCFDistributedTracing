@@ -29,7 +29,7 @@ jobs:
         run: msbuild WCFDistributedTracing\WCFDistributedTracing.csproj /p:Configuration=Release
  
       - name: Pack
-        run: nuget pack WCFDistributedTracing\WCFDistributedTracing.csproj -Properties Configuration=Release
+        run: nuget pack WCFDistributedTracing.csproj -Properties Configuration=Release
         working-directory: WCFDistributedTracing
         
       - run: nuget push *.nupkg -Source https://api.nuget.org/v3/index.json
