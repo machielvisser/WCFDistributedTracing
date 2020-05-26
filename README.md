@@ -49,7 +49,7 @@ var proxy = channelFactory.CreateChannel();
 DistributedOperationContext.Current = new DistributedOperationContext();
 
 var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
-Log.Information("Received: {Answer}", result);
+Log.Information("Received: {Answer}", result.Message);
 ```
 
 
@@ -65,4 +65,4 @@ The DistributedOperationContext is scoped using AsyncLocal. That means it flows 
 Duplex channels are supported. The interaction between the EdgeServer and the PlatformServer shows this.
 
 ## ToDo:
-* Let the unit test automatically test the distributed output somehow
+* 
