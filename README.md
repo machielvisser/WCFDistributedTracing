@@ -8,10 +8,31 @@ Serilog is used as the logging framework, with an output to Seq for central anal
 This will result in the following output in Seq:
 ![Diagram](./Documentation/Seq.PNG)
 
-## Details
+## How to use
 
-### Application structure
-![Diagram](./Documentation/Architecture.png)
+### Add Behavior
+```csharp
+var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
+var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new BasicHttpBinding(), "");
+endPoint.AddTracingBehavior();
+host.Open();
+
+var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
+factory.Endpoint.AddTracingBehavior();
+var proxy = factory.CreateChannel(callbackInstance);
+```
+
+### Add Serilog Enricher
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Seq("http://localhost:5341")
+    // add the xunit test output sink to the serilog logger
+    // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
+    .Enrich.WithProcessName()
+    .Enrich.With<ContextEnricher>()
+    .CreateLogger();
+```
 
 ### Initiate new trace
 When there is not a current DistributedOperationContext during a WCF call a new one will be created with a new TraceId.
@@ -27,6 +48,12 @@ DistributedOperationContext.Current = new DistributedOperationContext();
 var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
 Log.Information("Received: {Answer}", result);
 ```
+
+
+## Details
+
+### Application structure
+![Diagram](./Documentation/Architecture.png)
 
 ### Async pattern
 The DistributedOperationContext is scoped using AsyncLocal. That means it flows with async operations downstream, but not upstream if changed downstream.
