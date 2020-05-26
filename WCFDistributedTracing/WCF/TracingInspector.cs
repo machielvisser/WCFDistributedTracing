@@ -53,7 +53,7 @@ namespace UtilsLogging.WCF
             var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
 
             Log.Information(
-                "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}.",
+                "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}",
                 operationName,
                 endpoint,
                 inputs
@@ -70,7 +70,7 @@ namespace UtilsLogging.WCF
             var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
 
             Log.Information(
-                "Operation {OperationName} on {Endpoint} called with return value {ReturnValue}.",
+                "Operation {OperationName} on {Endpoint} returned {ReturnValue}",
                 operationName,
                 endpoint,
                 returnValue?.ToString()
