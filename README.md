@@ -10,6 +10,9 @@ This will result in the following output in Seq:
 
 ## How to use
 
+### Serilog
+Download and install [Seq](https://datalust.co/seq)
+
 ### Add Behavior
 ```csharp
 var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
@@ -62,6 +65,4 @@ The DistributedOperationContext is scoped using AsyncLocal. That means it flows 
 Duplex channels are supported. The interaction between the EdgeServer and the PlatformServer shows this.
 
 ## ToDo:
-* Log WCF call including parameters
 * Let the unit test automatically test the distributed output somehow
-* Make it a NuGet library
