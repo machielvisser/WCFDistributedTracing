@@ -9,7 +9,7 @@ namespace WCFDistributedTracing.EdgeServer
 {
     public class SimpleEdgeService : ISimpleEdgeService, ISimplePlatformServiceCallbackContract
     {
-        public static string BaseAddress = $"http://{Environment.MachineName}:8000/Service";
+        public static string BaseAddress = $"net.tcp://{Environment.MachineName}:8000/Service";
 
         public async Task<Answer> Echo(string text)
         {

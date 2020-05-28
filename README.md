@@ -69,5 +69,9 @@ The DistributedOperationContext is scoped using AsyncLocal. That means it flows 
 ### Duplex channel
 Duplex channels are supported. The interaction between the EdgeServer and the PlatformServer shows this.
 
+### Binding
+The implementation works with different types of bindings, BasicHttpBinding, WSDUalHttpBinding and NetTcpBinding have been tested. 
+The sample services demonstrate the use of a NetTcpBinding for the EdgeService and a WSDualHttpBinding for the PlatormService.
+
 ## ToDo:
 * 

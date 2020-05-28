@@ -12,7 +12,7 @@ namespace WCFDistributedTracing.EdgeServer
         {
             CreateLogger();
             var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
-            var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new BasicHttpBinding(), "");
+            var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new NetTcpBinding(), "");
             endPoint.AddTracingBehavior();
             host.Open();
             Log.Information("Host opened");
