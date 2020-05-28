@@ -21,7 +21,7 @@ namespace WCFDistributedTracing.Serilog
         {
             if (logEvent == null)
                 throw new ArgumentNullException(nameof(logEvent));
-            var property = new LogEventProperty(TraceId, new ScalarValue(DistributedOperationContext.Current?.TraceId.ToString() ?? "-"));
+            var property = new LogEventProperty(TraceId, new ScalarValue(DistributedOperationContext.Current?.TraceId ?? "-"));
             logEvent.AddPropertyIfAbsent(property);
             var userContextProperty = new LogEventProperty("IsUserContext", new ScalarValue(OperationContext.Current?.IsUserContext.ToString() ?? "-"));
             logEvent.AddPropertyIfAbsent(userContextProperty);

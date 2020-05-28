@@ -30,7 +30,8 @@ namespace WCFDistributedTracing.EdgeServer
                 TraceId = DistributedOperationContext.Current.TraceId
             };
         }
-        public async Task EchoClient(string message, Guid traceId)
+
+        public async Task EchoClient(string message, string traceId)
         {
             await Task.Run(() => Log.Information($"Received from the {nameof(ISimplePlatformService)}: '{{Message}}' with {{TraceId}}", message, traceId));
         }

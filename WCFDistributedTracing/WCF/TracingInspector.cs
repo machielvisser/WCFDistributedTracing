@@ -14,10 +14,10 @@ namespace UtilsLogging.WCF
         {
             var context = DistributedOperationContext.Current ?? new DistributedOperationContext();
 
-            var header = new MessageHeader<DistributedOperationContext>(context)
-                .GetUntypedHeader(ContextHeader, string.Empty);
+            var header = new MessageHeader<DistributedOperationContext>(context);
+            var untypedHeader = header.GetUntypedHeader(ContextHeader, string.Empty);
 
-            request.Headers.Add(header);
+            request.Headers.Add(untypedHeader);
 
             return context;
         }

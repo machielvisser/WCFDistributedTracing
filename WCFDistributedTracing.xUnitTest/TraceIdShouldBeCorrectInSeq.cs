@@ -42,8 +42,6 @@ namespace WCFDistributedTracing.Test
                 StartService($"{solutionPath}/WCFDistributedTracing.EdgeServer/{buildPath}/WCFDistributedTracing.EdgeServer.exe"),
                 StartService($"{solutionPath}/WCFDistributedTracing.PlatformServer/{buildPath}/WCFDistributedTracing.PlatformServer.exe")
             };
-
-            Log.Information(Directory.GetCurrentDirectory());
         }
 
         private Process StartService(string app)
@@ -79,7 +77,7 @@ namespace WCFDistributedTracing.Test
             var result = await proxy.Echo($"Hello edge service");
             Log.Information("Received: {Answer}", result);
 
-            Assert.NotEqual(Guid.Empty, result.TraceId);
+            Assert.NotEqual(default, result.TraceId);
 
             (proxy as IClientChannel)?.Close();
         }

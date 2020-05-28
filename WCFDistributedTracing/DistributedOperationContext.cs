@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace WCFDistributedTracing
@@ -8,11 +8,13 @@ namespace WCFDistributedTracing
     {
         private static readonly AsyncLocal<DistributedOperationContext> _current = new AsyncLocal<DistributedOperationContext>();
 
-        public Guid TraceId { get; set; }
+        public string TraceId { get; set; }
+        public string SpanId { get; set; }
 
         public DistributedOperationContext()
         {
-            TraceId = Guid.NewGuid();
+            TraceId = NewTraceId();
+            SpanId = NewSpanId();
         }
 
         public static DistributedOperationContext Current
@@ -20,5 +22,8 @@ namespace WCFDistributedTracing
             get => _current.Value;
             set => _current.Value = value;
         }
+
+        public string NewTraceId() => Guid.NewGuid().ToString("N");
+        public string NewSpanId() => Guid.NewGuid().ToString("N").Substring(0, 8);
     }
 }
