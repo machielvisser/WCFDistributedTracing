@@ -73,5 +73,9 @@ Duplex channels are supported. The interaction between the EdgeServer and the Pl
 The implementation works with different types of bindings, BasicHttpBinding, WSDUalHttpBinding and NetTcpBinding have been tested. 
 The sample services demonstrate the use of a NetTcpBinding for the EdgeService and a WSDualHttpBinding for the PlatormService.
 
+### Standards
+For the trace context we try to follow the [W3C standard](https://www.w3.org/TR/trace-context/) as much as possible.
+
+
 ## ToDo:
 * 
