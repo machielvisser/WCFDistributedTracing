@@ -5,8 +5,11 @@ using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Trace.Configuration;
 using Serilog;
 using WCFDistributedTracing.EdgeServer;
+using WCFDistributedTracing.OpenTelemetry;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
 using Xunit;
@@ -17,6 +20,7 @@ namespace WCFDistributedTracing.Test
     public class TraceIdShouldBeCorrectInSeq : IDisposable
     {
         private readonly ChannelFactory<ISimpleEdgeService> _channelFactory;
+        private readonly TracerFactory _tracerFactory;
         private readonly List<Process> _services;
 
         public TraceIdShouldBeCorrectInSeq(ITestOutputHelper testOutputHelper)
@@ -31,8 +35,20 @@ namespace WCFDistributedTracing.Test
                 .Enrich.With<WCFTracingEnricher>()
                 .CreateLogger();
 
+            _tracerFactory =  TracerFactory.Create(builder =>
+            {
+                builder
+                    .UseJaeger(c =>
+                    {
+                        c.AgentHost = "localhost";
+                        c.AgentPort = 6831;
+                    });
+            });
+            TracerFactoryBase.SetDefault(_tracerFactory);
+
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new NetTcpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
             _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
 
             var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
             var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
@@ -125,10 +141,13 @@ namespace WCFDistributedTracing.Test
         public void Dispose()
         {
             _channelFactory.Close();
+            _tracerFactory.Dispose();
+
+            foreach (var service in _services)
+                service.StandardInput.WriteLine();
 
             foreach (var service in _services)
             {
-                service.StandardInput.WriteLine();
                 service.WaitForExit();
                 service.Close();
             }

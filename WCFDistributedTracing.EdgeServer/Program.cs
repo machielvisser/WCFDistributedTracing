@@ -3,6 +3,7 @@ using System.ServiceModel;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Trace.Configuration;
 using Serilog;
+using WCFDistributedTracing.OpenTelemetry;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
 
@@ -27,6 +28,7 @@ namespace WCFDistributedTracing.EdgeServer
             var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new NetTcpBinding(), "");
             endPoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            endPoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
