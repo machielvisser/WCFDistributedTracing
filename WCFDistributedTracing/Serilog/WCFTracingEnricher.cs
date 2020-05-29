@@ -1,16 +1,14 @@
 using System;
-using System.ServiceModel;
 using Serilog.Core;
 using Serilog.Events;
-using WCFDistributedTracing.WCF;
 
 namespace WCFDistributedTracing.Serilog
 {
     /// <summary>Enrich log events with a HttpRequestId GUID.</summary>
-    public class ContextEnricher : ILogEventEnricher
+    public class WCFTracingEnricher : ILogEventEnricher
     {
         /// <summary>The property name added to enriched log events.</summary>
-        public const string TraceId = "TraceId";
+        public const string TraceIdPropertyName = "TraceId";
 
         /// <summary>
         /// Enrich the log event with an id assigned to the currently-executing HTTP request, if any.
@@ -21,10 +19,8 @@ namespace WCFDistributedTracing.Serilog
         {
             if (logEvent == null)
                 throw new ArgumentNullException(nameof(logEvent));
-            var property = new LogEventProperty(TraceId, new ScalarValue(DistributedOperationContext.Current?.TraceId ?? "-"));
+            var property = new LogEventProperty(TraceIdPropertyName, new ScalarValue(DistributedOperationContext.Current?.TraceId ?? "-"));
             logEvent.AddPropertyIfAbsent(property);
-            var userContextProperty = new LogEventProperty("IsUserContext", new ScalarValue(OperationContext.Current?.IsUserContext.ToString() ?? "-"));
-            logEvent.AddPropertyIfAbsent(userContextProperty);
         }
     }
 }

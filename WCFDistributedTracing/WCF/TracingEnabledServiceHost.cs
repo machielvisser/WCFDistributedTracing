@@ -29,10 +29,9 @@ namespace WCFDistributedTracing.WCF
         protected override void ApplyConfiguration()
         {
             base.ApplyConfiguration();
+
             foreach (var endpoint in Description.Endpoints)
-            {
                 endpoint.AddTracingBehavior();
-            }
         }
 
         public override void AddServiceEndpoint(ServiceEndpoint endpoint)

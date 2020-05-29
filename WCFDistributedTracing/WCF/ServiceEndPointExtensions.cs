@@ -1,4 +1,3 @@
-using System.Linq;
 using System.ServiceModel.Description;
 
 namespace WCFDistributedTracing.WCF
@@ -7,14 +6,12 @@ namespace WCFDistributedTracing.WCF
     {
         public static void AddTracingBehavior(this ServiceEndpoint endPoint)
         {
-            if (!endPoint.Behaviors.OfType<TracingBehavior>().Any())
-                endPoint.Behaviors.Add(new TracingBehavior());
+            var tracingBehavior = new TracingBehavior();
+
+            endPoint.Behaviors.AddIfNotExists(tracingBehavior);
 
             foreach (var operationDescription in endPoint.Contract.Operations)
-            {
-                if (operationDescription.Behaviors.OfType<TracingBehavior>().Any())
-                    operationDescription.Behaviors.Add(new TracingBehavior());
-            }
+                operationDescription.Behaviors.Add(tracingBehavior);
         }
     }
 }

@@ -2,9 +2,8 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using Serilog;
-using WCFDistributedTracing;
 
-namespace UtilsLogging.WCF
+namespace WCFDistributedTracing.WCF
 {
     public class TracingInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
     {
@@ -50,14 +49,23 @@ namespace UtilsLogging.WCF
 
         public object BeforeCall(string operationName, object[] inputs)
         {
-            var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+            if (OperationContext.Current == null)
+            {
+                Log.Information(
+                    "Calling Operation {OperationName} with inputs {OperationInputs}",
+                    operationName,
+                    inputs);
+            }
+            else
+            {
+                var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
 
-            Log.Information(
-                "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}",
-                operationName,
-                endpoint,
-                inputs
-            );
+                Log.Information(
+                    "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}",
+                    operationName,
+                    endpoint,
+                    inputs);
+            }
 
             return DistributedOperationContext.Current;
         }
@@ -67,14 +75,23 @@ namespace UtilsLogging.WCF
             if (correlationState is DistributedOperationContext context)
                 DistributedOperationContext.Current = context;
 
-            var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+            if (OperationContext.Current == null)
+            {
+                Log.Information(
+                    "Operation {OperationName} returend {ReturnValue}",
+                    operationName,
+                    returnValue?.ToString());
+            }
+            else
+            {
+                var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
 
-            Log.Information(
-                "Operation {OperationName} on {Endpoint} returned {ReturnValue}",
-                operationName,
-                endpoint,
-                returnValue?.ToString()
-            );
+                Log.Information(
+                    "Operation {OperationName} on {Endpoint} returned {ReturnValue}",
+                    operationName,
+                    endpoint,
+                    returnValue?.ToString());
+            }
         }
     }
 }

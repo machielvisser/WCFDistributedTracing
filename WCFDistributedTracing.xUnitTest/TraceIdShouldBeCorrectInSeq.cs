@@ -28,7 +28,7 @@ namespace WCFDistributedTracing.Test
                 .WriteTo.TestOutput(testOutputHelper, outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
                 .Enrich.WithProcessName()
                 .Enrich.WithThreadId()
-                .Enrich.With<ContextEnricher>()
+                .Enrich.With<WCFTracingEnricher>()
                 .CreateLogger();
 
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new NetTcpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
