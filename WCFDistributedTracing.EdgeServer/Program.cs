@@ -1,5 +1,7 @@
 using System;
 using System.ServiceModel;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Trace.Configuration;
 using Serilog;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
@@ -11,6 +13,17 @@ namespace WCFDistributedTracing.EdgeServer
         static void Main(string[] _)
         {
             CreateLogger();
+
+            TracerFactoryBase.SetDefault(TracerFactory.Create(builder =>
+            {
+                builder
+                    .UseJaeger(c =>
+                    {
+                        c.AgentHost = "localhost";
+                        c.AgentPort = 6831;
+                    });
+            }));
+
             var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new NetTcpBinding(), "");
             endPoint.AddTracingBehavior();
