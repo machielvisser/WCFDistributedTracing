@@ -29,7 +29,7 @@ namespace WCFDistributedTracing.PlatformServer
                 // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
                 .Enrich.WithProcessName()
-                .Enrich.With<ContextEnricher>()
+                .Enrich.With<WCFTracingEnricher>()
                 .CreateLogger();
         }
     }
