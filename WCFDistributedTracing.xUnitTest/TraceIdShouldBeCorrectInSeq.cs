@@ -144,10 +144,8 @@ namespace WCFDistributedTracing.Test
             _tracerFactory.Dispose();
 
             foreach (var service in _services)
-                service.StandardInput.WriteLine();
-
-            foreach (var service in _services)
             {
+                service.StandardInput.WriteLine();
                 service.WaitForExit();
                 service.Close();
             }
