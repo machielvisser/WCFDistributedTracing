@@ -22,11 +22,11 @@ Install-Package WCFDistributedTracing
 ```csharp
 var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
 var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new BasicHttpBinding(), "");
-endPoint.AddTracingBehavior();
+endPoint.AddBehavior<TracingBehavior>();
 host.Open();
 
 var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
-factory.Endpoint.AddTracingBehavior();
+factory.Endpoint.AddBehavior<TracingBehavior>();
 var proxy = factory.CreateChannel(callbackInstance);
 ```
 
@@ -47,7 +47,7 @@ When there is not a current DistributedOperationContext during a WCF call a new 
 It is also possible to force a new DistributedOperationContext when it is necessary to run multiple parralel WCF calls with the same TraceId:
 ```csharp
 var channelFactory = new ChannelFactory<ISimpleEdgeService>(new BasicHttpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
-channelFactory.Endpoint.AddTracingBehavior();
+channelFactory.Endpoint.AddBehavior<TracingBehavior>();
 var proxy = channelFactory.CreateChannel();
 
 // All WCF operations and logging statements will have the same TraceId after this initialization
