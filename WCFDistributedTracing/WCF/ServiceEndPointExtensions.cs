@@ -11,7 +11,7 @@ namespace WCFDistributedTracing.WCF
             endPoint.Behaviors.AddIfNotExists(tracingBehavior);
 
             foreach (var operationDescription in endPoint.Contract.Operations)
-                operationDescription.Behaviors.Add(tracingBehavior);
+                operationDescription.Behaviors.AddIfNotExists(tracingBehavior);
         }
     }
 }
