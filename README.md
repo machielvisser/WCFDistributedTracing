@@ -38,7 +38,7 @@ Log.Logger = new LoggerConfiguration()
     // https://github.com/trbenning/serilog-sinks-xunit#serilog-sinks-xunit
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj} {Properties} {NewLine}{Exception}")
     .Enrich.WithProcessName()
-    .Enrich.With<ContextEnricher>()
+    .Enrich.With<WCFTracingEnricher>()
     .CreateLogger();
 ```
 
@@ -53,7 +53,7 @@ var proxy = channelFactory.CreateChannel();
 // All WCF operations and logging statements will have the same TraceId after this initialization
 DistributedOperationContext.Current = new DistributedOperationContext();
 
-var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}").ContinueOnScope(scope);
+var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
 Log.Information("Received: {Answer}", result.Message);
 ```
 
