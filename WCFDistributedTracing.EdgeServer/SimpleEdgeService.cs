@@ -19,7 +19,7 @@ namespace WCFDistributedTracing.EdgeServer
 
             var callbackInstance = new InstanceContext(this);
             var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
-            factory.Endpoint.AddTracingBehavior();
+            factory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
             var proxy = factory.CreateChannel(callbackInstance);
 
             await proxy.Echo($"Hello {nameof(ISimplePlatformService)} here is a message from the client: {text}");
