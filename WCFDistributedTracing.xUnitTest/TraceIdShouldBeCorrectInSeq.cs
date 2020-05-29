@@ -32,7 +32,7 @@ namespace WCFDistributedTracing.Test
                 .CreateLogger();
 
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new NetTcpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
-            _channelFactory.Endpoint.AddBehavior<TracingBehavior>();
+            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
 
             var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
             var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());

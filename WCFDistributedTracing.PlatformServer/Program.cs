@@ -13,7 +13,7 @@ namespace WCFDistributedTracing.PlatformServer
             CreateLogger();
             var host = new TracingEnabledServiceHost(typeof(SimplePlatformService), new Uri(SimplePlatformService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimplePlatformService), new WSDualHttpBinding(), "");
-            endPoint.AddBehavior<TracingBehavior>();
+            endPoint.AddBehavior<InspectorBehavior<TracingInspector>>();
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();

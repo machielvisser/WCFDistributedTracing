@@ -31,12 +31,12 @@ namespace WCFDistributedTracing.WCF
             base.ApplyConfiguration();
 
             foreach (var endpoint in Description.Endpoints)
-                endpoint.AddBehavior<TracingBehavior>();
+                endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
         }
 
         public override void AddServiceEndpoint(ServiceEndpoint endpoint)
         {
-            endpoint.AddBehavior<TracingBehavior>();
+            endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
 
             base.AddServiceEndpoint(endpoint);
         }

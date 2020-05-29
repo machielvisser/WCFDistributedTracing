@@ -6,25 +6,25 @@ using System.ServiceModel.Dispatcher;
 
 namespace WCFDistributedTracing.WCF
 {
-    public class TracingBehavior: IEndpointBehavior, IServiceBehavior, IOperationBehavior
+    public class InspectorBehavior<T>: IEndpointBehavior, IServiceBehavior, IOperationBehavior where T : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector, new()
     {
-        private readonly TracingInspector _tracingInspector;
+        private readonly T _inspector;
 
-        public TracingBehavior()
+        public InspectorBehavior()
         {
-            _tracingInspector = new TracingInspector();
+            _inspector = new T();
         }
 
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-            clientRuntime.ClientMessageInspectors.AddIfNotExists(_tracingInspector);
-            clientRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
-            clientRuntime.CallbackDispatchRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
+            clientRuntime.ClientMessageInspectors.AddIfNotExists(_inspector);
+            clientRuntime.MessageInspectors.AddIfNotExists(_inspector);
+            clientRuntime.CallbackDispatchRuntime.MessageInspectors.AddIfNotExists(_inspector);
         }
 
         public void ApplyClientBehavior(OperationDescription operationDescription, ClientOperation clientOperation)
         {
-            clientOperation.ParameterInspectors.AddIfNotExists(_tracingInspector);
+            clientOperation.ParameterInspectors.AddIfNotExists(_inspector);
         }
 
         public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
@@ -32,11 +32,11 @@ namespace WCFDistributedTracing.WCF
             if (endpointDispatcher.ChannelDispatcher == null) return;
             foreach (var ed in endpointDispatcher.ChannelDispatcher.Endpoints)
             {
-                ed.DispatchRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
-                ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
+                ed.DispatchRuntime.MessageInspectors.AddIfNotExists(_inspector);
+                ed.DispatchRuntime.CallbackClientRuntime.MessageInspectors.AddIfNotExists(_inspector);
 
                 foreach (var operation in ed.DispatchRuntime.Operations)
-                    operation.ParameterInspectors.AddIfNotExists(_tracingInspector);
+                    operation.ParameterInspectors.AddIfNotExists(_inspector);
             }
         }
 
@@ -45,17 +45,17 @@ namespace WCFDistributedTracing.WCF
             foreach (ChannelDispatcher channelDispatcherBase in serviceHostBase.ChannelDispatchers)
                 foreach (var eDispatcher in channelDispatcherBase.Endpoints)
                 {
-                    eDispatcher.DispatchRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
-                    eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.AddIfNotExists(_tracingInspector);
+                    eDispatcher.DispatchRuntime.MessageInspectors.AddIfNotExists(_inspector);
+                    eDispatcher.DispatchRuntime.CallbackClientRuntime.MessageInspectors.AddIfNotExists(_inspector);
 
                     foreach (var dispatchOperation in eDispatcher.DispatchRuntime.Operations)
-                        dispatchOperation.ParameterInspectors.AddIfNotExists(_tracingInspector);
+                        dispatchOperation.ParameterInspectors.AddIfNotExists(_inspector);
                 }
         }
 
         public void ApplyDispatchBehavior(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
-            dispatchOperation.ParameterInspectors.AddIfNotExists(_tracingInspector);
+            dispatchOperation.ParameterInspectors.AddIfNotExists(_inspector);
         }
 
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters) { }
