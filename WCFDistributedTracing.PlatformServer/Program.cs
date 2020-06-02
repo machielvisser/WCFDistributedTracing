@@ -1,6 +1,9 @@
-﻿using Serilog;
+﻿using OpenTelemetry.Trace;
+using OpenTelemetry.Trace.Configuration;
+using Serilog;
 using System;
 using System.ServiceModel;
+using WCFDistributedTracing.OpenTelemetry;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
 
@@ -11,12 +14,27 @@ namespace WCFDistributedTracing.PlatformServer
         static void Main(string[] _)
         {
             CreateLogger();
+
+            var tracerFactory = TracerFactory.Create(builder =>
+            {
+                builder
+                    .UseJaeger(c =>
+                    {
+                        c.AgentHost = "localhost";
+                        c.AgentPort = 6831;
+                    });
+            });
+            TracerFactoryBase.SetDefault(tracerFactory);
+
             var host = new TracingEnabledServiceHost(typeof(SimplePlatformService), new Uri(SimplePlatformService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimplePlatformService), new WSDualHttpBinding(), "");
             endPoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            endPoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
+
+            tracerFactory.Dispose();
             Log.CloseAndFlush();
             host.Close();
         }

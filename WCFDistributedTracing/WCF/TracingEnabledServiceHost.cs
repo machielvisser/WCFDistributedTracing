@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
+using WCFDistributedTracing.OpenTelemetry;
 
 namespace WCFDistributedTracing.WCF
 {
@@ -31,12 +32,16 @@ namespace WCFDistributedTracing.WCF
             base.ApplyConfiguration();
 
             foreach (var endpoint in Description.Endpoints)
+            {
                 endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+                endpoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
+            }
         }
 
         public override void AddServiceEndpoint(ServiceEndpoint endpoint)
         {
             endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            endpoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
 
             base.AddServiceEndpoint(endpoint);
         }

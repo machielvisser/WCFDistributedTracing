@@ -15,7 +15,7 @@ namespace WCFDistributedTracing.EdgeServer
         {
             CreateLogger();
 
-            TracerFactoryBase.SetDefault(TracerFactory.Create(builder =>
+            var tracerFactory = TracerFactory.Create(builder =>
             {
                 builder
                     .UseJaeger(c =>
@@ -23,7 +23,8 @@ namespace WCFDistributedTracing.EdgeServer
                         c.AgentHost = "localhost";
                         c.AgentPort = 6831;
                     });
-            }));
+            });
+            TracerFactoryBase.SetDefault(tracerFactory);
 
             var host = new TracingEnabledServiceHost(typeof(SimpleEdgeService), new Uri(SimpleEdgeService.BaseAddress));
             var endPoint = host.AddServiceEndpoint(typeof(ISimpleEdgeService), new NetTcpBinding(), "");
@@ -32,6 +33,8 @@ namespace WCFDistributedTracing.EdgeServer
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
+
+            tracerFactory.Dispose();
             Log.CloseAndFlush();
             host.Close();
         }

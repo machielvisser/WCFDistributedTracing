@@ -62,12 +62,33 @@ namespace WCFDistributedTracing.OpenTelemetry
 
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            return null;
+            var span = _textFormat.Extract(request, (r, k) => r.Headers.GetHeader<string>(k, string.Empty).Yield());
+
+            _tracer.StartActiveSpan(request.Headers.Action, span, SpanKind.Server, out TelemetrySpan activeSpan);
+
+            return span;
         }
 
         public void BeforeSendReply(ref Message reply, object correlationState)
         {
+            var span = correlationState as TelemetrySpan;
+            try
+            {
+                if (span == null || !span.Context.IsValid)
+                {
+                    Log.Error($"Span is null in {nameof(OpenTelemetryInspector)}");
+                    return;
+                }
 
+                if (span.IsRecording)
+                {
+                    span.Status = reply.IsFault ? Status.Internal : Status.Ok;
+                }
+            }
+            finally
+            {
+                span?.End();
+            }
         }
 
         public object BeforeCall(string operationName, object[] inputs)
