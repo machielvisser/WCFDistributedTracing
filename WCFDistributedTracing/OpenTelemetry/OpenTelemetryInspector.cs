@@ -62,11 +62,11 @@ namespace WCFDistributedTracing.OpenTelemetry
 
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var span = _textFormat.Extract(request, (r, k) => r.Headers.GetHeader<string>(k, string.Empty).Yield());
+            var span = _textFormat.Extract(request, (r, k) => r.Headers.YieldHeader<string>(k));
 
             _tracer.StartActiveSpan(request.Headers.Action, span, SpanKind.Server, out TelemetrySpan activeSpan);
 
-            return span;
+            return activeSpan;
         }
 
         public void BeforeSendReply(ref Message reply, object correlationState)
