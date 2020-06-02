@@ -19,10 +19,6 @@ namespace WCFDistributedTracing.OpenTelemetry
 
         public object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var context = OperationContext.Current;
-
-            var remoteAddress = channel.RemoteAddress;
-
             _tracer.StartActiveSpan(request.Headers.Action, SpanKind.Client, out var span);
             if (span.IsRecording)
             {
@@ -33,13 +29,12 @@ namespace WCFDistributedTracing.OpenTelemetry
             }
 
             _textFormat.Inject(span.Context, request, (r, k, v) => r.Headers.Add(MessageHeader.CreateHeader(k, string.Empty, v)));
-
+            
             return span;
         }
 
         public void AfterReceiveReply(ref Message reply, object correlationState)
         {
-            var context = OperationContext.Current;
             var span = correlationState as TelemetrySpan;
             try
             {
@@ -51,7 +46,10 @@ namespace WCFDistributedTracing.OpenTelemetry
 
                 if (span.IsRecording)
                 {
-                    span.Status = reply.IsFault ? Status.Internal : Status.Ok;
+                    if (reply != null)
+                        span.Status = reply.IsFault ? Status.Internal : Status.Ok;
+                    else
+                        span.Status = Status.Unknown;
                 }
             }
             finally
@@ -62,11 +60,17 @@ namespace WCFDistributedTracing.OpenTelemetry
 
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var span = _textFormat.Extract(request, (r, k) => r.Headers.YieldHeader<string>(k));
+            var parentSpan = _textFormat.Extract(request, (r, k) => r.Headers.YieldHeader<string>(k));
 
-            _tracer.StartActiveSpan(request.Headers.Action, span, SpanKind.Server, out TelemetrySpan activeSpan);
+            _tracer.StartActiveSpan(request.Headers.Action, parentSpan, SpanKind.Server, out TelemetrySpan span);
+            if (span.IsRecording)
+            {
+                span.PutComponentAttribute("grpc");
+                span.SetAttribute("rpc.service", channel.LocalAddress.Uri.LocalPath);
+                span.SetAttribute("net.host.name", channel.LocalAddress.Uri.Host);
+            }
 
-            return activeSpan;
+            return span;
         }
 
         public void BeforeSendReply(ref Message reply, object correlationState)
@@ -82,7 +86,10 @@ namespace WCFDistributedTracing.OpenTelemetry
 
                 if (span.IsRecording)
                 {
-                    span.Status = reply.IsFault ? Status.Internal : Status.Ok;
+                    if (reply != null)
+                        span.Status = reply.IsFault ? Status.Internal : Status.Ok;
+                    else
+                        span.Status = Status.Unknown;
                 }
             }
             finally

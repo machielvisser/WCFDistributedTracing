@@ -2,6 +2,7 @@ using System;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using Serilog;
+using WCFDistributedTracing.OpenTelemetry;
 using WCFDistributedTracing.PlatformServer;
 using WCFDistributedTracing.WCF;
 
@@ -20,6 +21,7 @@ namespace WCFDistributedTracing.EdgeServer
             var callbackInstance = new InstanceContext(this);
             var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
             factory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            factory.Endpoint.AddBehavior<InspectorBehavior<OpenTelemetryInspector>>();
             var proxy = factory.CreateChannel(callbackInstance);
 
             await proxy.Echo($"Hello {nameof(ISimplePlatformService)} here is a message from the client: {text}");
