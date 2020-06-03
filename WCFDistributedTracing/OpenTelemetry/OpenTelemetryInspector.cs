@@ -27,6 +27,7 @@ namespace WCFDistributedTracing.OpenTelemetry
                 span.SetAttribute("net.peer.name", channel.RemoteAddress.Uri.Host);
                 span.SetAttribute("net.peer.port", channel.RemoteAddress.Uri.Port);
             }
+            Log.Information("Started (1): {SpanId}", span.Context.SpanId);
 
             _textFormat.Inject(span.Context, request, (r, k, v) => r.Headers.Add(MessageHeader.CreateHeader(k, string.Empty, v)));
             
@@ -35,6 +36,7 @@ namespace WCFDistributedTracing.OpenTelemetry
 
         public void AfterReceiveReply(ref Message reply, object correlationState)
         {
+            var parentSpanId = _tracer.CurrentSpan.Context.SpanId;
             var span = correlationState as TelemetrySpan;
             try
             {
@@ -54,6 +56,7 @@ namespace WCFDistributedTracing.OpenTelemetry
             }
             finally
             {
+                Log.Information("Ended (3): {SpanId}", span.Context.SpanId);
                 span?.End();
             }
         }
@@ -69,6 +72,7 @@ namespace WCFDistributedTracing.OpenTelemetry
                 span.SetAttribute("rpc.service", channel.LocalAddress.Uri.LocalPath);
                 span.SetAttribute("net.host.name", channel.LocalAddress.Uri.Host);
             }
+            Log.Information("Started (4): {SpanId}", span.Context.SpanId);
 
             return span;
         }
@@ -94,18 +98,23 @@ namespace WCFDistributedTracing.OpenTelemetry
             }
             finally
             {
+                Log.Information("Ended (5): {SpanId}", span.Context.SpanId);
                 span?.End();
             }
         }
 
         public object BeforeCall(string operationName, object[] inputs)
         {
+            var test = OperationContext.Current;
             return null;
         }
 
         public void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
         {
+            var span = _tracer.CurrentSpan;
 
+            Log.Information("Ended (6): {SpanId}", span.Context.SpanId);
+            span.End();
         }
     }
 }
