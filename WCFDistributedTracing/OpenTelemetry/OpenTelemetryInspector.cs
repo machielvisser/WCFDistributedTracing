@@ -1,13 +1,13 @@
 ﻿using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using Serilog;
+using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.ServiceModel.Dispatcher;
 
 namespace WCFDistributedTracing.OpenTelemetry
 {
-    public class OpenTelemetryInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
+    public class OpenTelemetryInspector : Inspector
     {
         private readonly Tracer _tracer;
         private readonly ITextFormat _textFormat = new TraceContextFormat();
@@ -17,26 +17,35 @@ namespace WCFDistributedTracing.OpenTelemetry
             _tracer = TracerFactoryBase.Default.GetTracer(nameof(OpenTelemetryInspector));
         }
 
-        public object BeforeSendRequest(ref Message request, IClientChannel channel)
+        public override object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            _tracer.StartActiveSpan(request.Headers.Action, SpanKind.Client, out var span);
+            var action = request.Headers.Action;
+            var clientOperation = ClientRuntime?.ClientOperations.FirstOrDefault(o => o.Action == action);
+            var isOneWay = clientOperation?.IsOneWay ?? OperationDescription?.IsOneWay ?? false;
+            var operationName = clientOperation?.Name ?? OperationDescription?.Name ?? string.Empty;
+            var serviceName = ClientRuntime?.ContractClientType.Name ?? OperationDescription?.DeclaringContract.Name;
+            var serviceNameSpace = ClientRuntime?.ContractClientType.Namespace ?? OperationDescription?.DeclaringContract.Namespace;
+            var fullOperationName = $"{serviceNameSpace}.{serviceName}.{operationName}";
+
+             _tracer.StartActiveSpan(fullOperationName, SpanKind.Client, out var span);
             if (span.IsRecording)
             {
-                span.PutComponentAttribute("grpc");
-                span.SetAttribute("rpc.service", channel.RemoteAddress.Uri.LocalPath);
                 span.SetAttribute("net.peer.name", channel.RemoteAddress.Uri.Host);
                 span.SetAttribute("net.peer.port", channel.RemoteAddress.Uri.Port);
+                span.SetAttribute("wdf.oneway", isOneWay);
             }
             Log.Information("Started (1): {SpanId}", span.Context.SpanId);
 
             _textFormat.Inject(span.Context, request, (r, k, v) => r.Headers.Add(MessageHeader.CreateHeader(k, string.Empty, v)));
+
+            if (isOneWay)
+                EndSpan(span);
             
             return span;
         }
 
-        public void AfterReceiveReply(ref Message reply, object correlationState)
+        public override void AfterReceiveReply(ref Message reply, object correlationState)
         {
-            var parentSpanId = _tracer.CurrentSpan.Context.SpanId;
             var span = correlationState as TelemetrySpan;
             try
             {
@@ -56,19 +65,24 @@ namespace WCFDistributedTracing.OpenTelemetry
             }
             finally
             {
-                Log.Information("Ended (3): {SpanId}", span.Context.SpanId);
-                span?.End();
+                EndSpan(span);
             }
         }
 
-        public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
+        private void EndSpan(TelemetrySpan span)
+        {
+            Log.Information("Ended (3): {SpanId}", span.Context.SpanId);
+            span?.End();
+        }
+
+        public override object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
             var parentSpan = _textFormat.Extract(request, (r, k) => r.Headers.YieldHeader<string>(k));
+            var fullOperationName = $"{OperationDescription.DeclaringContract.ConfigurationName}.{OperationDescription.Name}";
 
-            _tracer.StartActiveSpan(request.Headers.Action, parentSpan, SpanKind.Server, out TelemetrySpan span);
+            _tracer.StartActiveSpan(fullOperationName, parentSpan, SpanKind.Server, out TelemetrySpan span);
             if (span.IsRecording)
             {
-                span.PutComponentAttribute("grpc");
                 span.SetAttribute("rpc.service", channel.LocalAddress.Uri.LocalPath);
                 span.SetAttribute("net.host.name", channel.LocalAddress.Uri.Host);
             }
@@ -77,7 +91,7 @@ namespace WCFDistributedTracing.OpenTelemetry
             return span;
         }
 
-        public void BeforeSendReply(ref Message reply, object correlationState)
+        public override void BeforeSendReply(ref Message reply, object correlationState)
         {
             var span = correlationState as TelemetrySpan;
             try
@@ -103,13 +117,12 @@ namespace WCFDistributedTracing.OpenTelemetry
             }
         }
 
-        public object BeforeCall(string operationName, object[] inputs)
+        public override object BeforeCall(string operationName, object[] inputs)
         {
-            var test = OperationContext.Current;
             return null;
         }
 
-        public void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
+        public override void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
         {
             var span = _tracer.CurrentSpan;
 

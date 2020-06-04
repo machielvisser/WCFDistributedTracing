@@ -1,15 +1,14 @@
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.ServiceModel.Dispatcher;
 using Serilog;
 
 namespace WCFDistributedTracing.WCF
 {
-    public class TracingInspector : IDispatchMessageInspector, IClientMessageInspector, IParameterInspector
+    public class TracingInspector : Inspector
     {
         public string ContextHeader { get; } = "TraceContext";
 
-        public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
+        public override object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
             var context = DistributedOperationContext.Current ?? new DistributedOperationContext();
 
@@ -21,7 +20,7 @@ namespace WCFDistributedTracing.WCF
             return context;
         }
 
-        public virtual object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
+        public override object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
             var context = request.Headers.GetHeader<DistributedOperationContext>(ContextHeader, string.Empty);
 
@@ -30,7 +29,7 @@ namespace WCFDistributedTracing.WCF
             return context;
         }
 
-        public virtual void BeforeSendReply(ref Message reply, object correlationState)
+        public override void BeforeSendReply(ref Message reply, object correlationState)
         {
             if (reply != null && correlationState is DistributedOperationContext context)
             {
@@ -41,13 +40,13 @@ namespace WCFDistributedTracing.WCF
             }
         }
 
-        public virtual void AfterReceiveReply(ref Message reply, object correlationState)
+        public override void AfterReceiveReply(ref Message reply, object correlationState)
         {
             if (correlationState is DistributedOperationContext context)
                 DistributedOperationContext.Current = context;
         }
 
-        public object BeforeCall(string operationName, object[] inputs)
+        public override object BeforeCall(string operationName, object[] inputs)
         {
             if (OperationContext.Current == null)
             {
@@ -70,7 +69,7 @@ namespace WCFDistributedTracing.WCF
             return DistributedOperationContext.Current;
         }
 
-        public void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
+        public override void AfterCall(string operationName, object[] outputs, object returnValue, object correlationState)
         {
             if (correlationState is DistributedOperationContext context)
                 DistributedOperationContext.Current = context;

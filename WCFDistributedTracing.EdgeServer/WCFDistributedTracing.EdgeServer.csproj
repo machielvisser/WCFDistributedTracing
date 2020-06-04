@@ -5,6 +5,7 @@
     <TargetFramework>net471</TargetFramework>
     <AssemblyName>WCFDistributedTracing.EdgeServer</AssemblyName>
     <RootNamespace>WCFDistributedTracing.EdgeServer</RootNamespace>
+    <UserSecretsId>103bc2cc-1717-41de-b900-1af43b18f34b</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

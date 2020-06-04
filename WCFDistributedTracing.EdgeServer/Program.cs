@@ -20,6 +20,7 @@ namespace WCFDistributedTracing.EdgeServer
                 builder
                     .UseJaeger(c =>
                     {
+                        c.ServiceName = nameof(SimpleEdgeService);
                         c.AgentHost = "localhost";
                         c.AgentPort = 6831;
                     });

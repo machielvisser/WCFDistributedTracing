@@ -3,6 +3,7 @@ using OpenTelemetry.Trace.Configuration;
 using Serilog;
 using System;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using WCFDistributedTracing.OpenTelemetry;
 using WCFDistributedTracing.Serilog;
 using WCFDistributedTracing.WCF;
@@ -11,7 +12,7 @@ namespace WCFDistributedTracing.PlatformServer
 {
     class Program
     {
-        static void Main(string[] _)
+        static async Task Main(string[] _)
         {
             CreateLogger();
 
@@ -20,6 +21,7 @@ namespace WCFDistributedTracing.PlatformServer
                 builder
                     .UseJaeger(c =>
                     {
+                        c.ServiceName = nameof(SimplePlatformService);
                         c.AgentHost = "localhost";
                         c.AgentPort = 6831;
                     });
@@ -33,6 +35,8 @@ namespace WCFDistributedTracing.PlatformServer
             host.Open();
             Log.Information("Host opened");
             Console.ReadLine();
+
+            await Task.Delay(1000);
 
             tracerFactory.Dispose();
             Log.CloseAndFlush();
