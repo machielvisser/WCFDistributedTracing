@@ -30,9 +30,12 @@ namespace WCFDistributedTracing.OpenTelemetry
              _tracer.StartActiveSpan(fullOperationName, SpanKind.Client, out var span);
             if (span.IsRecording)
             {
-                span.SetAttribute("net.peer.name", channel.RemoteAddress.Uri.Host);
-                span.SetAttribute("net.peer.port", channel.RemoteAddress.Uri.Port);
-                span.SetAttribute("wdf.oneway", isOneWay);
+                span.PutPeerNameAttribute(channel.RemoteAddress.Uri.Host);
+                span.PutPeerPortAttribute(channel.RemoteAddress.Uri.Port);
+                span.PutWcfServiceNamespaceAttribute(serviceNameSpace);
+                span.PutWcfServiceAttribute(serviceName);
+                span.PutWcfOperationAttribute(operationName);
+                span.PutWcfIsOneWayAttribute(isOneWay);
             }
             Log.Information("Started (1): {SpanId}", span.Context.SpanId);
 
@@ -78,13 +81,19 @@ namespace WCFDistributedTracing.OpenTelemetry
         public override object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
             var parentSpan = _textFormat.Extract(request, (r, k) => r.Headers.YieldHeader<string>(k));
-            var fullOperationName = $"{OperationDescription.DeclaringContract.ConfigurationName}.{OperationDescription.Name}";
+            var contractType = OperationDescription?.DeclaringContract.ContractType;
+            var serviceNameSpace = contractType?.Namespace;
+            var serviceName = contractType?.Name;
+            var operationName = OperationDescription?.Name;
+            var fullOperationName = $"{serviceNameSpace}.{serviceName}.{operationName}";
 
             _tracer.StartActiveSpan(fullOperationName, parentSpan, SpanKind.Server, out TelemetrySpan span);
             if (span.IsRecording)
             {
-                span.SetAttribute("rpc.service", channel.LocalAddress.Uri.LocalPath);
-                span.SetAttribute("net.host.name", channel.LocalAddress.Uri.Host);
+                span.PutNetHostNameAttribute(channel.LocalAddress.Uri.Host);
+                span.PutWcfServiceNamespaceAttribute(serviceNameSpace);
+                span.PutWcfServiceAttribute(serviceName);
+                span.PutWcfOperationAttribute(operationName);
             }
             Log.Information("Started (4): {SpanId}", span.Context.SpanId);
 

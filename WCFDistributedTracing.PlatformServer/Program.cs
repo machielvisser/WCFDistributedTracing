@@ -21,7 +21,7 @@ namespace WCFDistributedTracing.PlatformServer
                 builder
                     .UseJaeger(c =>
                     {
-                        c.ServiceName = nameof(SimplePlatformService);
+                        c.ServiceName = nameof(ISimplePlatformService);
                         c.AgentHost = "localhost";
                         c.AgentPort = 6831;
                     });

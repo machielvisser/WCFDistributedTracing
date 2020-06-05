@@ -12,14 +12,14 @@ namespace WCFDistributedTracing.WCF
                 collection.Add(element);
         }
 
-        public static void AddBehavior<T>(this ServiceEndpoint endPoint) where T : IEndpointBehavior, IOperationBehavior, new()
+        public static void AddBehavior<T>(this ServiceEndpoint endPoint) where T : IEndpointBehavior, IServiceBehavior, IOperationBehavior, new()
         {
-            var tracingBehavior = new T();
+            var behavior = new T();
 
-            endPoint.Behaviors.AddIfNotExists(tracingBehavior);
+            endPoint.Behaviors.AddIfNotExists(behavior);
 
             foreach (var operationDescription in endPoint.Contract.Operations)
-                operationDescription.Behaviors.AddIfNotExists(tracingBehavior);
+                operationDescription.Behaviors.AddIfNotExists(behavior);
         }
 
         public static void AddOrMerge<T, U>(this ICollection<U> collection, T element) where T : Inspector, U
