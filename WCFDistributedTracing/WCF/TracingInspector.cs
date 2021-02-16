@@ -23,7 +23,9 @@ namespace WCFDistributedTracing.WCF
 
         public virtual object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var context = request.Headers.GetHeader<DistributedOperationContext>(ContextHeader, string.Empty);
+            var context = request.Headers.FindHeader(ContextHeader, string.Empty) == -1 ? 
+                new DistributedOperationContext() : 
+                request.Headers.GetHeader<DistributedOperationContext>(ContextHeader, string.Empty);
 
             DistributedOperationContext.Current = context;
 
@@ -32,13 +34,11 @@ namespace WCFDistributedTracing.WCF
 
         public virtual void BeforeSendReply(ref Message reply, object correlationState)
         {
-            if (reply != null && correlationState is DistributedOperationContext context)
-            {
-                var header = new MessageHeader<DistributedOperationContext>(context)
-                    .GetUntypedHeader(ContextHeader, string.Empty);
+            if (reply == null || !(correlationState is DistributedOperationContext context)) return;
+            var header = new MessageHeader<DistributedOperationContext>(context)
+                .GetUntypedHeader(ContextHeader, string.Empty);
 
-                reply.Headers.Add(header);
-            }
+            reply.Headers.Add(header);
         }
 
         public virtual void AfterReceiveReply(ref Message reply, object correlationState)
