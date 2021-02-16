@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
-    <Version>0.1.8</Version>
+    <Version>0.1.9</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/machielvisser/WCFDistributedTracing</PackageProjectUrl>
     <RepositoryUrl>https://github.com/machielvisser/WCFDistributedTracing</RepositoryUrl>
