@@ -32,8 +32,7 @@ namespace WCFDistributedTracing.Test
                 .CreateLogger();
 
             _channelFactory = new ChannelFactory<ISimpleEdgeService>(new NetTcpBinding(), new EndpointAddress(SimpleEdgeService.BaseAddress));
-            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
-
+            
             var currectDirectory = Directory.GetCurrentDirectory().Split(Path.DirectorySeparatorChar);
             var solutionPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Take(currectDirectory.Length - 4).ToArray());
             var buildPath = string.Join(Path.DirectorySeparatorChar.ToString(), currectDirectory.Skip(currectDirectory.Length - 3).ToArray());
@@ -63,19 +62,37 @@ namespace WCFDistributedTracing.Test
         // Check that all logging has the same TraceId
         public async void TestSingleTrace()
         {
+            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
             await ExecuteAsyncTrace(0, 0);
         }
 
         [Fact]
-        // Check that the call was send with an initialized context
-        public async void TestAutoContext()
+        // Check that the response was send with an initialized context
+        public async void TestRemoteAutoContext()
         {
             var proxy = _channelFactory.CreateChannel();
 
             Assert.Null(DistributedOperationContext.Current);
 
             var result = await proxy.Echo($"Hello edge service");
-            Log.Information("Received: {Answer}", result);
+            Log.Information("Received: {@Answer}", result);
+
+            Assert.NotEqual(default, result.TraceId);
+
+            (proxy as IClientChannel)?.Close();
+        }
+
+        [Fact]
+        // Check that the call was send with an initialized context
+        public async void TestAutoContext()
+        {
+            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
+            var proxy = _channelFactory.CreateChannel();
+
+            Assert.Null(DistributedOperationContext.Current);
+
+            var result = await proxy.Echo($"Hello edge service");
+            Log.Information("Received: {@Answer}", result);
 
             Assert.NotEqual(default, result.TraceId);
 
@@ -86,10 +103,11 @@ namespace WCFDistributedTracing.Test
         // Check the correctness of the TraceIds manually
         public void TestMultiThreadingTraces()
         {
+            _channelFactory.Endpoint.AddBehavior<InspectorBehavior<TracingInspector>>();
             Log.Information("Staring TestMultiThreadingTraces");
 
             var executions = Enumerable
-                .Range(0, 4) // More than 4 results in problems with Reliable Messaging default 4 channels -> can be increased with a custom binding
+                .Range(0, 3) // More than 4 results in problems with Reliable Messaging default 4 channels -> can be increased with a custom binding
                 .Select(index => ExecuteAsyncTrace(index, 100))
                 .ToArray();
 
@@ -115,7 +133,7 @@ namespace WCFDistributedTracing.Test
             Assert.Equal(traceId, DistributedOperationContext.Current.TraceId);
 
             var result = await proxy.Echo($"Hello edge service calling you from operation {traceId}");
-            Log.Information("Received: {Answer}", result.Message);
+            Log.Information("Received: {@Answer}", result.Message);
 
             Assert.Equal(traceId, result.TraceId);
 
