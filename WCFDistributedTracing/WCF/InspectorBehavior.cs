@@ -42,7 +42,9 @@ namespace WCFDistributedTracing.WCF
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
-            foreach (ChannelDispatcher channelDispatcherBase in serviceHostBase.ChannelDispatchers)
+            foreach (var channelDispatcherBase1 in serviceHostBase.ChannelDispatchers)
+            {
+                var channelDispatcherBase = (ChannelDispatcher) channelDispatcherBase1;
                 foreach (var eDispatcher in channelDispatcherBase.Endpoints)
                 {
                     eDispatcher.DispatchRuntime.MessageInspectors.AddIfNotExists(_inspector);
@@ -51,6 +53,7 @@ namespace WCFDistributedTracing.WCF
                     foreach (var dispatchOperation in eDispatcher.DispatchRuntime.Operations)
                         dispatchOperation.ParameterInspectors.AddIfNotExists(_inspector);
                 }
+            }
         }
 
         public void ApplyDispatchBehavior(OperationDescription operationDescription, DispatchOperation dispatchOperation)
