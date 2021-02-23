@@ -11,7 +11,12 @@ namespace WCFDistributedTracing.WCF
 
         public virtual object BeforeSendRequest(ref Message request, IClientChannel channel)
         {
-            var context = DistributedOperationContext.Current ?? new DistributedOperationContext();
+            if (DistributedOperationContext.Current == null)
+            {
+                DistributedOperationContext.Current = new DistributedOperationContext();
+            }
+
+            var context = DistributedOperationContext.Current;
 
             var header = new MessageHeader<DistributedOperationContext>(context);
             var untypedHeader = header.GetUntypedHeader(ContextHeader, string.Empty);
@@ -23,8 +28,8 @@ namespace WCFDistributedTracing.WCF
 
         public virtual object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var context = request.Headers.FindHeader(ContextHeader, string.Empty) == -1 ? 
-                new DistributedOperationContext() : 
+            var context = request.Headers.FindHeader(ContextHeader, string.Empty) == -1 ?
+                DistributedOperationContext.Current ?? new DistributedOperationContext() :
                 request.Headers.GetHeader<DistributedOperationContext>(ContextHeader, string.Empty);
 
             DistributedOperationContext.Current = context;
@@ -49,24 +54,15 @@ namespace WCFDistributedTracing.WCF
 
         public object BeforeCall(string operationName, object[] inputs)
         {
-            if (OperationContext.Current == null)
-            {
-                Log.Information(
-                    "Calling Operation {OperationName} with inputs {OperationInputs}",
-                    operationName,
-                    inputs);
-            }
-            else
-            {
-                var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+            var endpoint = OperationContext.Current?.Channel.LocalAddress.Uri;
 
-                Log.Information(
-                    "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs}",
-                    operationName,
-                    endpoint,
-                    inputs);
-            }
-
+            Log.Verbose(
+                "Operation {OperationName} on {Endpoint} called with inputs {OperationInputs} for {TraceId}",
+                operationName,
+                endpoint,
+                inputs,
+                DistributedOperationContext.Current?.TraceId);
+        
             return DistributedOperationContext.Current;
         }
 
@@ -75,23 +71,14 @@ namespace WCFDistributedTracing.WCF
             if (correlationState is DistributedOperationContext context)
                 DistributedOperationContext.Current = context;
 
-            if (OperationContext.Current == null)
-            {
-                Log.Information(
-                    "Operation {OperationName} returend {ReturnValue}",
-                    operationName,
-                    returnValue?.ToString());
-            }
-            else
-            {
-                var endpoint = OperationContext.Current.Channel.LocalAddress.Uri;
+            var endpoint = OperationContext.Current?.Channel.LocalAddress.Uri;
 
-                Log.Information(
-                    "Operation {OperationName} on {Endpoint} returned {ReturnValue}",
-                    operationName,
-                    endpoint,
-                    returnValue?.ToString());
-            }
+            Log.Verbose(
+                "Operation {OperationName} on {Endpoint} returned {ReturnValue} for {TraceId}",
+                operationName,
+                endpoint,
+                returnValue?.ToString(),
+                DistributedOperationContext.Current?.TraceId);
         }
     }
 }
