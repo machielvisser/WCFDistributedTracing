@@ -1,3 +1,4 @@
+using System;
 using System.ServiceModel;
 using System.Threading.Tasks;
 
@@ -7,6 +8,6 @@ namespace WCFDistributedTracing.EdgeServer
     public interface ISimpleEdgeService
     {
         [OperationContract]
-        Task<Answer> Echo(string text);
+        Task<Answer> Echo(string text, TimeSpan? delay = default);
     }
 }

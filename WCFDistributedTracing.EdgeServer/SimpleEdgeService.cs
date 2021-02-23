@@ -9,13 +9,15 @@ namespace WCFDistributedTracing.EdgeServer
 {
     public class SimpleEdgeService : ISimpleEdgeService, ISimplePlatformServiceCallbackContract
     {
-        public static string BaseAddress = $"net.tcp://{Environment.MachineName}:8000/Service";
+        public static readonly string BaseAddress = $"net.tcp://{Environment.MachineName}:8000/Service";
 
-        public async Task<Answer> Echo(string text)
+        public async Task<Answer> Echo(string text, TimeSpan? delay = default)
         {
             Log.Information("Received: {Input}", text);
 
             await Task.Run(() => Log.Information("Some random async operation"));
+
+            await Task.Delay(delay ?? TimeSpan.Zero);
 
             var callbackInstance = new InstanceContext(this);
             var factory = new DuplexChannelFactory<ISimplePlatformService>(callbackInstance, new WSDualHttpBinding(), new EndpointAddress(SimplePlatformService.BaseAddress));
@@ -23,7 +25,7 @@ namespace WCFDistributedTracing.EdgeServer
             var proxy = factory.CreateChannel(callbackInstance);
 
             await proxy.Echo($"Hello {nameof(ISimplePlatformService)} here is a message from the client: {text}");
-
+            
             return new Answer
             {
                 Message = $"Forwarded your message to {nameof(ISimplePlatformService)}",

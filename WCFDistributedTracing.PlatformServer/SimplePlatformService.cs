@@ -22,12 +22,6 @@ namespace WCFDistributedTracing.PlatformServer
             await client.EchoClient("Using the duplex channel to let you know I received your message!", DistributedOperationContext.Current.TraceId);
         }
 
-        ISimplePlatformServiceCallbackContract Callback
-        {
-            get
-            {
-                return OperationContext.Current.GetCallbackChannel<ISimplePlatformServiceCallbackContract>();
-            }
-        }
+        ISimplePlatformServiceCallbackContract Callback => OperationContext.Current.GetCallbackChannel<ISimplePlatformServiceCallbackContract>();
     }
 }
