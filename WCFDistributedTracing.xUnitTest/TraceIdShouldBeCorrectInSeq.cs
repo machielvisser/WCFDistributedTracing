@@ -122,7 +122,7 @@ namespace WCFDistributedTracing.Test
 
             Assert.Null(DistributedOperationContext.Current);
 
-            // Initialize new ConteDistributedOperationContext
+            // Initialize new ContextDistributedOperationContext
             DistributedOperationContext.Current = new DistributedOperationContext();
 
             var traceId = DistributedOperationContext.Current?.TraceId;

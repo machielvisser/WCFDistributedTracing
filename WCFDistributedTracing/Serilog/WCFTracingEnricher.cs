@@ -19,6 +19,13 @@ namespace WCFDistributedTracing.Serilog
         {
             if (logEvent == null)
                 throw new ArgumentNullException(nameof(logEvent));
+            
+            // make sure we always have a unique id
+            if(DistributedOperationContext.Current == null)
+            {
+                DistributedOperationContext.Current = new DistributedOperationContext();
+            }
+            
             var property = new LogEventProperty(TraceIdPropertyName, new ScalarValue(DistributedOperationContext.Current?.TraceId ?? "-"));
             logEvent.AddPropertyIfAbsent(property);
         }
